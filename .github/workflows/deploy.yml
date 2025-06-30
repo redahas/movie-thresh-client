@@ -2,10 +2,10 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [closed]
+    tags:
+      - 'v*'
+      - 'v*.*'
+      - 'v*.*.*'
 
 jobs:
   test-and-build:
@@ -42,12 +42,13 @@ jobs:
 
       - name: Upload sourcemaps to Sentry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # if: startsWith(github.ref, 'refs/tags/v')
         run: yarn upload-sourcemaps
         env:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ github.sha }}
+          SENTRY_RELEASE: ${{ github.ref_name }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -59,11 +60,17 @@ jobs:
   deploy:
     needs: test-and-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -75,12 +82,9 @@ jobs:
         run: |
           echo "🚀 Deploying to production..."
           echo "Build artifacts downloaded to dist/"
-          echo "TODO: Add your deployment commands here"
-          echo "Examples:"
-          echo "- Deploy to Vercel: vercel --prod"
-          echo "- Deploy to Netlify: netlify deploy --prod --dir=dist"
-          echo "- Deploy to AWS S3: aws s3 sync dist/ s3://your-bucket"
-          echo "- Deploy to custom server: rsync -avz dist/ user@server:/path/to/app"
+
+          # Deploy to Vercel (commented out until ready)
+          # npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
 
           # Placeholder for actual deployment
           # Uncomment and configure one of these:
