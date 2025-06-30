@@ -1,2 +1,0 @@
-import{j as o,N as t}from"./main-rs2D7N6z.js";try{let e=typeof window<"u"?window:typeof global<"u"?global:typeof globalThis<"u"?globalThis:typeof self<"u"?self:{},n=new e.Error().stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="836bc84e-a0f9-4cf9-9900-1fa0f39b0b17",e._sentryDebugIdIdentifier="sentry-dbid-836bc84e-a0f9-4cf9-9900-1fa0f39b0b17")}catch{}const f=()=>o.jsx(t,{children:"Post not found"});export{f as notFoundComponent};
-//# sourceMappingURL=posts._postId-BEskAS8b.js.map
