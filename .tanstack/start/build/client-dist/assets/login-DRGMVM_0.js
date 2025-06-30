@@ -1,0 +1,2 @@
+import{j as o}from"./main-rs2D7N6z.js";import{L as t}from"./Login-QpR84cK_.js";import"./Auth-dbvjWqwn.js";try{let e=typeof window<"u"?window:typeof global<"u"?global:typeof globalThis<"u"?globalThis:typeof self<"u"?self:{},n=new e.Error().stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="67554b1f-838a-45e4-8fad-cdcd189ff1b9",e._sentryDebugIdIdentifier="sentry-dbid-67554b1f-838a-45e4-8fad-cdcd189ff1b9")}catch{}const i=function(){return o.jsx(t,{})};export{i as component};
+//# sourceMappingURL=login-DRGMVM_0.js.map

@@ -1,0 +1,94 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test:run
+
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ENVIRONMENT: production
+          VITE_SENTRY_TRACES_SAMPLE_RATE: '0.1'
+          VITE_SENTRY_TRACE_PROPAGATION_TARGETS: 'movie-thresh-client.vercel.app,movie-thresh-server.vercel.app'
+
+      - name: Upload sourcemaps to Sentry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm run upload-sourcemaps
+        env:
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: ${{ github.sha }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: dist/
+          retention-days: 30
+
+  deploy:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+          path: dist/
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "Build artifacts downloaded to dist/"
+          echo "TODO: Add your deployment commands here"
+          echo "Examples:"
+          echo "- Deploy to Vercel: vercel --prod"
+          echo "- Deploy to Netlify: netlify deploy --prod --dir=dist"
+          echo "- Deploy to AWS S3: aws s3 sync dist/ s3://your-bucket"
+          echo "- Deploy to custom server: rsync -avz dist/ user@server:/path/to/app"
+
+          # Placeholder for actual deployment
+          # Uncomment and configure one of these:
+          # - name: Deploy to Vercel
+          #   run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+          # - name: Deploy to Netlify
+          #   run: npx netlify deploy --prod --dir=dist --auth ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+          # - name: Deploy to AWS S3
+          #   run: |
+          #     aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --delete
+          #     aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
