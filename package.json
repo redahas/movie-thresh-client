@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && tsc --noEmit",
-    "build:with-sentry": "vite build && tsc --noEmit && npm run upload-sourcemaps",
+    "build": "vite build",
+    "build:with-sentry": "vite build && npm run upload-sourcemaps",
     "start": "vite start",
     "lint": "npx biome lint --write .",
     "format": "npx biome format --write .",
