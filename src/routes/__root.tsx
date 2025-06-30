@@ -6,6 +6,7 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router";
+import * as Sentry from "@sentry/react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -16,6 +17,19 @@ import { seo } from "../utils/seo";
 import { getSupabaseServerClient } from "../utils/supabase";
 import { StickyHeader } from "~/components/StickyHeader";
 import { Footer } from "~/components/Footer";
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [Sentry.browserTracingIntegration()],
+  tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+    ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+    : 1.0,
+  environment: import.meta.env.VITE_ENVIRONMENT,
+  sendDefaultPii: true,
+  tracePropagationTargets: import.meta.env.VITE_SENTRY_TRACE_PROPAGATION_TARGETS
+    ? import.meta.env.VITE_SENTRY_TRACE_PROPAGATION_TARGETS.split(",")
+    : ["localhost", "movie-thresh-server.vercel.app"],
+});
 
 const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getSupabaseServerClient();

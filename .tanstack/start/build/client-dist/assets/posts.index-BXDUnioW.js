@@ -1,0 +1,2 @@
+import{j as t}from"./main-rs2D7N6z.js";try{let e=typeof window<"u"?window:typeof global<"u"?global:typeof globalThis<"u"?globalThis:typeof self<"u"?self:{},n=new e.Error().stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="58b24a50-b21c-4bb4-84d5-e5fb963d638d",e._sentryDebugIdIdentifier="sentry-dbid-58b24a50-b21c-4bb4-84d5-e5fb963d638d")}catch{}const o=function(){return t.jsx("div",{children:"Select a post."})};export{o as component};
+//# sourceMappingURL=posts.index-BXDUnioW.js.map
