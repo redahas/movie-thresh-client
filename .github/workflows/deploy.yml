@@ -37,21 +37,36 @@ jobs:
         run: yarn test:run
 
       - name: Build application
-        run: yarn build
+        run: |
+          echo "🔨 Starting build process..."
+          echo "📁 Current directory before build:"
+          pwd
+          echo "📁 Contents before build:"
+          ls -la
+
+          echo "🔨 Running Vite build..."
+          yarn build
+
+          echo "📁 Contents after build:"
+          ls -la
+          echo "📁 Checking for TanStack Start output directories:"
+          if [ -d ".output" ]; then
+            echo "✅ .output directory found!"
+            ls -la .output/
+            if [ -d ".output/client" ]; then
+              echo "✅ .output/client directory found!"
+              ls -la .output/client/
+            fi
+          else
+            echo "❌ .output directory not found!"
+            echo "📁 Checking for other build directories:"
+            find . -name "*.js" -o -name "*.css" -o -name "*.html" | head -10
+          fi
         env:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_ENVIRONMENT: production
           VITE_SENTRY_TRACES_SAMPLE_RATE: '0.1'
           VITE_SENTRY_TRACE_PROPAGATION_TARGETS: 'movie-thresh-client.vercel.app,movie-thresh-server.vercel.app'
-
-      - name: Verify build output
-        run: |
-          echo "📁 Checking build output..."
-          ls -la
-          echo "📁 Contents of dist/ directory:"
-          ls -la dist/ || echo "dist/ directory not found"
-          echo "📁 Current working directory:"
-          pwd
 
       - name: Upload sourcemaps to Sentry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -72,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: dist/
+          path: .output/
           retention-days: 30
 
   deploy:
@@ -94,12 +109,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
-          path: dist/
+          path: .output/
 
       - name: Deploy to production
         run: |
           echo "🚀 Deploying to production..."
-          echo "Build artifacts downloaded to dist/"
+          echo "Build artifacts downloaded to .output/"
 
           # Deploy to Vercel (commented out until ready)
           # npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
