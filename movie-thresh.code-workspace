@@ -1,0 +1,121 @@
+{
+  "folders": [
+    {
+      "name": "🎬 MovieThresh Client",
+      "path": "./movie-thresh-client"
+    },
+    {
+      "name": "⚙️ MovieThresh Server",
+      "path": "./movie-thresh-server"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.codeActionsOnSave": {
+      "quickfix.biome": "explicit",
+      "source.organizeImports.biome": "explicit"
+    },
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "files.associations": {
+      "*.css": "tailwindcss"
+    },
+    "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript"
+    },
+    "tailwindCSS.experimental.classRegex": [
+      ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+      ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "emmet.includeLanguages": {
+      "typescript": "html",
+      "typescriptreact": "html"
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.git": true
+    },
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "workbench.colorCustomizations": {
+      "statusBar.noFolderBackground": "#212121"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "biomejs.biome",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "ms-vscode.vscode-json",
+      "ms-vscode.vscode-css-peek",
+      "ms-vscode.vscode-html-css-support",
+      "ms-vscode.vscode-eslint"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🚀 Launch Client Dev Server",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/movie-thresh-client/node_modules/.bin/vite",
+        "args": ["dev"],
+        "cwd": "${workspaceFolder}/movie-thresh-client",
+        "console": "integratedTerminal",
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      {
+        "name": "🖥️ Launch Server Dev",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/movie-thresh-server/node_modules/.bin/nodemon",
+        "args": ["src/index.ts"],
+        "cwd": "${workspaceFolder}/movie-thresh-server",
+        "console": "integratedTerminal",
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      {
+        "name": "🧪 Debug Client Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/movie-thresh-client/node_modules/.bin/vitest",
+        "args": ["--run"],
+        "cwd": "${workspaceFolder}/movie-thresh-client",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "🧪 Debug Server Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/movie-thresh-server/node_modules/.bin/jest",
+        "args": ["--runInBand"],
+        "cwd": "${workspaceFolder}/movie-thresh-server",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}
