@@ -160,7 +160,14 @@ export function SearchForm({ placeholder, ...props }: SearchFormProps) {
           <XIcon className="cursor-pointer opacity-50 hover:opacity-100 size-4" />
         </button>
       )}
-
+      <button
+        onClick={() => {
+          console.log(123);
+          throw new Error("This is your first error!");
+        }}
+      >
+        Break the world
+      </button>
       {isOpen && (
         <div
           ref={commandRef}

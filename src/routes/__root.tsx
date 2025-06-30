@@ -20,10 +20,15 @@ import { Footer } from "~/components/Footer";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
-  // Setting this option to true will send default PII data to Sentry.
-  // For example, automatic IP address collection on events
-  sendDefaultPii: true,
+  integrations: [Sentry.browserTracingIntegration()],
+  tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+    ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+    : 1.0,
   environment: import.meta.env.VITE_ENVIRONMENT,
+  sendDefaultPii: true,
+  tracePropagationTargets: import.meta.env.VITE_SENTRY_TRACE_PROPAGATION_TARGETS
+    ? import.meta.env.VITE_SENTRY_TRACE_PROPAGATION_TARGETS.split(",")
+    : ["localhost", "movie-thresh-server.vercel.app"],
 });
 
 const fetchUser = createServerFn({ method: "GET" }).handler(async () => {

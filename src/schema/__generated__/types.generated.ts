@@ -137,14 +137,16 @@ export const useSearchMoviesQuery = <
     >(
       client: GraphQLClient,
       variables: SearchMoviesQueryVariables,
-      options?: UseQueryOptions<SearchMoviesQuery, TError, TData>,
+      options?: Omit<UseQueryOptions<SearchMoviesQuery, TError, TData>, 'queryKey'> & { queryKey?: UseQueryOptions<SearchMoviesQuery, TError, TData>['queryKey'] },
       headers?: RequestInit['headers']
     ) => {
     
     return useQuery<SearchMoviesQuery, TError, TData>(
-      ['SearchMovies', variables],
-      fetcher<SearchMoviesQuery, SearchMoviesQueryVariables>(client, SearchMoviesDocument, variables, headers),
-      options
+      {
+    queryKey: ['SearchMovies', variables],
+    queryFn: fetcher<SearchMoviesQuery, SearchMoviesQueryVariables>(client, SearchMoviesDocument, variables, headers),
+    ...options
+  }
     )};
 
 useSearchMoviesQuery.getKey = (variables: SearchMoviesQueryVariables) => ['SearchMovies', variables];
