@@ -1,2 +1,0 @@
-import"./main-rs2D7N6z.js";try{let e=typeof window<"u"?window:typeof global<"u"?global:typeof globalThis<"u"?globalThis:typeof self<"u"?self:{},n=new e.Error().stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="eb82b748-990b-4f15-a593-18a13a1ab20e",e._sentryDebugIdIdentifier="sentry-dbid-eb82b748-990b-4f15-a593-18a13a1ab20e")}catch{}const o=()=>null;export{o as component};
-//# sourceMappingURL=search-CY-f8z7W.js.map

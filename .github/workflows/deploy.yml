@@ -68,20 +68,24 @@ jobs:
           VITE_SENTRY_TRACES_SAMPLE_RATE: '0.1'
           VITE_SENTRY_TRACE_PROPAGATION_TARGETS: 'movie-thresh-client.vercel.app,movie-thresh-server.vercel.app'
 
-      - name: Upload sourcemaps to Sentry
-        # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          echo "📁 Current directory before Sentry upload:"
-          pwd
-          echo "📁 Contents of current directory:"
-          ls -la
-          echo "📁 Running Sentry upload..."
-          yarn upload-sourcemaps
-        env:
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ github.sha }}
+      # - name: Upload sourcemaps to Sentry
+      #   # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     echo "📁 Current directory before Sentry upload:"
+      #     pwd
+      #     echo "📁 Contents of current directory:"
+      #     ls -la
+      #     echo "📁 Contents of .output directory (if it exists):"
+      #     ls -la .output/ || echo ".output directory not found"
+      #     echo "📁 Searching for any build files:"
+      #     find . -name "*.js" -o -name "*.css" -o -name "*.html" | head -10
+      #     echo "📁 Running Sentry upload..."
+      #     yarn upload-sourcemaps
+      #   env:
+      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      #     SENTRY_RELEASE: ${{ github.sha }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

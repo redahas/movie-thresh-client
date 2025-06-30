@@ -11,7 +11,7 @@ const SENTRY_CONFIG = {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   release: process.env.SENTRY_RELEASE || process.env.npm_package_version || '1.0.0',
   environment: process.env.NODE_ENV || 'production',
-  distPath: './.output/client', // TanStack Start client output
+  distPath: './.output/public', // TanStack Start public assets
   urlPrefix: '~/'
 };
 
