@@ -69,7 +69,7 @@ jobs:
           VITE_SENTRY_TRACE_PROPAGATION_TARGETS: 'movie-thresh-client.vercel.app,movie-thresh-server.vercel.app'
 
       - name: Upload sourcemaps to Sentry
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo "📁 Current directory before Sentry upload:"
           pwd
