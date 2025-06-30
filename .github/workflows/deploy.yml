@@ -44,15 +44,29 @@ jobs:
           VITE_SENTRY_TRACES_SAMPLE_RATE: '0.1'
           VITE_SENTRY_TRACE_PROPAGATION_TARGETS: 'movie-thresh-client.vercel.app,movie-thresh-server.vercel.app'
 
+      - name: Verify build output
+        run: |
+          echo "📁 Checking build output..."
+          ls -la
+          echo "📁 Contents of dist/ directory:"
+          ls -la dist/ || echo "dist/ directory not found"
+          echo "📁 Current working directory:"
+          pwd
+
       - name: Upload sourcemaps to Sentry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        # if: startsWith(github.ref, 'refs/tags/v')
-        run: yarn upload-sourcemaps
+        run: |
+          echo "📁 Current directory before Sentry upload:"
+          pwd
+          echo "📁 Contents of current directory:"
+          ls -la
+          echo "📁 Running Sentry upload..."
+          yarn upload-sourcemaps
         env:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ github.ref_name }}
+          SENTRY_RELEASE: ${{ github.sha }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
