@@ -17,6 +17,7 @@ const config: CodegenConfig = {
         addInfiniteQueryParam: true,
         requestHeadersType: 'RequestInit["headers"]',
         skipTypename: false,
+        defaultBaseType: 'Record<string, unknown>',
         scalars: {
           ID: 'string',
           String: 'string',

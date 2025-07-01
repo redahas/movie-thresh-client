@@ -7,13 +7,13 @@ package-lock.json
 .env
 .env.local
 !.env.example
+.env.sentry-build-plugin
 .vercel
 .output
 /build/
 /api/
 /server/build
 /public/build# Sentry Config File
-.env.sentry-build-plugin
 /test-results/
 /playwright-report/
 /blob-report/
