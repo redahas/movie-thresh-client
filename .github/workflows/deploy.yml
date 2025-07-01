@@ -2,14 +2,14 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [closed]
-    # tags:
-    #   - 'v*'
-    #   - 'v*.*'
-    #   - 'v*.*.*'
+    tags:
+      - 'v*'
+      - 'v*.*'
+      - 'v*.*.*'
+    # branches: [main]
+    # pull_request:
+    #   branches: [main]
+    #   types: [closed]
 
 jobs:
   test-and-build:
