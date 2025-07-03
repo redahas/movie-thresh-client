@@ -830,6 +830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dimforge/rapier3d-compat@npm:~0.12.0":
+  version: 0.12.0
+  resolution: "@dimforge/rapier3d-compat@npm:0.12.0"
+  checksum: 86cb3b39925673761aa5dca5429ca44e0c7ac8072472cca925e2ca732be695292e318501a2ab39110be1549d4f143a0af0620246657f76570c8cdd1b0b3df36c
+  languageName: node
+  linkType: hard
+
 "@emnapi/core@npm:^1.4.3":
   version: 1.4.3
   resolution: "@emnapi/core@npm:1.4.3"
@@ -3840,6 +3847,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-devtools@npm:5.81.2":
+  version: 5.81.2
+  resolution: "@tanstack/query-devtools@npm:5.81.2"
+  checksum: d8cb303b677c699b3174215f83ced0a048b876958149b59507e5d631b6f6b047da8c271137ab2aa2c360b0298843f86dd93e86f90ec59dea1ee8076f1eabf8a7
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query-devtools@npm:^5.81.5":
+  version: 5.81.5
+  resolution: "@tanstack/react-query-devtools@npm:5.81.5"
+  dependencies:
+    "@tanstack/query-devtools": 5.81.2
+  peerDependencies:
+    "@tanstack/react-query": ^5.81.5
+    react: ^18 || ^19
+  checksum: d1bbea37322f6250564d788f92b84c71b20b2c1d22b470597b66575f42c889ee680f046da2478f43d28b088590b28bbe9184dc8e3ff379175b38f0ddc6f96de9
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-query@npm:^5.81.5":
   version: 5.81.5
   resolution: "@tanstack/react-query@npm:5.81.5"
@@ -4235,6 +4261,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tweenjs/tween.js@npm:~23.1.3":
+  version: 23.1.3
+  resolution: "@tweenjs/tween.js@npm:23.1.3"
+  checksum: 2f8a908b275bb6729bde4b863c277bf7411d2e0302ceb0455369479077b89eaf8380cd9206b91ff574416418a95c6f06db4e1ddea732a286d0db0ba8e7c093d3
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.9.0":
   version: 0.9.0
   resolution: "@tybys/wasm-util@npm:0.9.0"
@@ -4384,10 +4417,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/stats.js@npm:*":
+  version: 0.17.4
+  resolution: "@types/stats.js@npm:0.17.4"
+  checksum: 6f1a20e09da0c0b371b3c095b2787a91a9397944679aa506a0886160faf0ad185b911a34b4ec325f146810c5be969f085e81264e2dbe39fd57eb8ff98347b5f4
+  languageName: node
+  linkType: hard
+
+"@types/three@npm:^0.178.0":
+  version: 0.178.0
+  resolution: "@types/three@npm:0.178.0"
+  dependencies:
+    "@dimforge/rapier3d-compat": ~0.12.0
+    "@tweenjs/tween.js": ~23.1.3
+    "@types/stats.js": "*"
+    "@types/webxr": "*"
+    "@webgpu/types": "*"
+    fflate: ~0.8.2
+    meshoptimizer: ~0.18.1
+  checksum: a3ed4e47aff7f5fa38a75fe4f1594616c38793a6678ff6051c3c576f6aaf730d098068938b74e17ba15c0dd58ebc4801da162a1ae80f4398776695a7fa5a42be
+  languageName: node
+  linkType: hard
+
 "@types/triple-beam@npm:^1.3.2":
   version: 1.3.5
   resolution: "@types/triple-beam@npm:1.3.5"
   checksum: 519b6a1b30d4571965c9706ad5400a200b94e4050feca3e7856e3ea7ac00ec9903e32e9a10e2762d0f7e472d5d03e5f4b29c16c0bd8c1f77c8876c683b2231f1
+  languageName: node
+  linkType: hard
+
+"@types/webxr@npm:*":
+  version: 0.5.22
+  resolution: "@types/webxr@npm:0.5.22"
+  checksum: 063dc810937058526476a7f38c87779a0e4fa1d2483f82c3fc713c9ea0c0e404f47e4ba0b08a3279a152ce37f0effcc30c0457642d9fd558dd511d9ce3f6f727
   languageName: node
   linkType: hard
 
@@ -4643,6 +4705,13 @@ __metadata:
   version: 3.5.17
   resolution: "@vue/shared@npm:3.5.17"
   checksum: 9e715233214deda4465689b90717ed8c300f581b8b742cf9b4c662dd25c4ce98228e963a2d6e531f53b326c9aa7a7dad4db7750eaa19ffbc51e69f8b72a711f0
+  languageName: node
+  linkType: hard
+
+"@webgpu/types@npm:*":
+  version: 0.1.63
+  resolution: "@webgpu/types@npm:0.1.63"
+  checksum: aef859529b29df7583cee7bc316f6310d3f28fb496fc9acfaaf2600c7cde2d9c18b7894022c699602fb326256b28d157bab97840bf05086f80ee18fa30c77a0a
   languageName: node
   linkType: hard
 
@@ -6940,6 +7009,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fflate@npm:~0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 29470337b85d3831826758e78f370e15cda3169c5cd4477c9b5eea2402261a74b2975bae816afabe1c15d21d98591e0d30a574f7103aa117bff60756fa3035d4
+  languageName: node
+  linkType: hard
+
 "figures@npm:^3.0.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
@@ -8779,6 +8855,13 @@ __metadata:
     "@types/node":
       optional: true
   checksum: 6f9f6bf02ea8bd51418484c532a8dbc9bf4b3249dd862b856be1c0b45e1e541d753fda8a46555cade298649b52e795052571afe0f4b396e5805d569e92d7f59e
+  languageName: node
+  linkType: hard
+
+"meshoptimizer@npm:~0.18.1":
+  version: 0.18.1
+  resolution: "meshoptimizer@npm:0.18.1"
+  checksum: 101dbed8abd4cf167cdb7a0bc13db90dd0743332c689e43b18cc5254d238f0766750752432401fa63dc7e9e32399ef68daacf48f0d89db1484042c1761c7362d
   languageName: node
   linkType: hard
 
@@ -11325,6 +11408,7 @@ __metadata:
     "@supabase/supabase-js": ^2.48.1
     "@tailwindcss/postcss": ^4.1.10
     "@tanstack/react-query": ^5.81.5
+    "@tanstack/react-query-devtools": ^5.81.5
     "@tanstack/react-router": ^1.121.27
     "@tanstack/react-router-devtools": ^1.121.27
     "@tanstack/react-start": ^1.121.31
@@ -11334,6 +11418,7 @@ __metadata:
     "@testing-library/react": ^16.3.0
     "@types/react": ^19.0.8
     "@types/react-dom": ^19.0.3
+    "@types/three": ^0.178.0
     "@vitejs/plugin-react": ^4.5.2
     autoprefixer: ^10.4.20
     class-variance-authority: ^0.7.1
@@ -11349,9 +11434,11 @@ __metadata:
     redaxios: ^0.5.1
     tailwind-merge: ^3.3.1
     tailwindcss: ^4.1.10
+    three: ^0.178.0
     tiny-invariant: ^1.3.3
     tw-animate-css: ^1.3.4
     typescript: ^5.7.2
+    vanta: ^0.5.24
     vite: ^7.0.0
     vite-tsconfig-paths: ^5.1.4
     vitest: ^3.2.0
@@ -11417,6 +11504,13 @@ __metadata:
   version: 1.0.0
   resolution: "text-hex@npm:1.0.0"
   checksum: 1138f68adc97bf4381a302a24e2352f04992b7b1316c5003767e9b0d3367ffd0dc73d65001ea02b07cd0ecc2a9d186de0cf02f3c2d880b8a522d4ccb9342244a
+  languageName: node
+  linkType: hard
+
+"three@npm:^0.178.0":
+  version: 0.178.0
+  resolution: "three@npm:0.178.0"
+  checksum: 027aa4d1a95bc664b7a92020eb9f7db76ecb679ff6fee6032b7f48a79b1774f9edd634fea9bdcfb763aa393f8ae7b3ffe0cbb6f9af77b65a78989d4f2146a06b
   languageName: node
   linkType: hard
 
@@ -12133,6 +12227,13 @@ __metadata:
     spdx-correct: ^3.0.0
     spdx-expression-parse: ^3.0.0
   checksum: 35703ac889d419cf2aceef63daeadbe4e77227c39ab6287eeb6c1b36a746b364f50ba22e88591f5d017bc54685d8137bc2d328d0a896e4d3fd22093c0f32a9ad
+  languageName: node
+  linkType: hard
+
+"vanta@npm:^0.5.24":
+  version: 0.5.24
+  resolution: "vanta@npm:0.5.24"
+  checksum: 58434862e086200ef8a0edbbd95db8ca88e97d284177dc75b67e36ee405772a7dc15af82347f889de0ea6cb6d46f459cc16cfa2abec4a3a6cb9d85f804f6e573
   languageName: node
   linkType: hard
 

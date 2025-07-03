@@ -1,7 +1,16 @@
 import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+
+// Type declaration for Vanta
+declare const VANTA: {
+  FOG: (config: any) => {
+    destroy: () => void;
+  };
+};
 
 interface VantaFogConfig {
   el: string | HTMLElement;
+  THREE?: typeof THREE;
   mouseControls?: boolean;
   touchControls?: boolean;
   gyroControls?: boolean;
@@ -19,16 +28,6 @@ interface VantaFogConfig {
   blurFactor?: number;
 }
 
-declare global {
-  interface Window {
-    VANTA: {
-      FOG: (config: VantaFogConfig) => {
-        destroy: () => void;
-      };
-    };
-  }
-}
-
 export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
   const vantaRef = useRef<any>(null);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -36,11 +35,12 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
   useEffect(() => {
     if (!elementRef.current) return;
 
-    // Wait for VANTA to be available
+    // Wait for VANTA to be available and initialize
     const initVanta = () => {
-      if (window.VANTA?.FOG && elementRef.current) {
-        vantaRef.current = window.VANTA.FOG({
+      if ((window as any).VANTA?.FOG && elementRef.current) {
+        vantaRef.current = (window as any).VANTA.FOG({
           el: elementRef.current,
+          THREE: THREE, // Pass the imported THREE instance
           mouseControls: true,
           touchControls: true,
           gyroControls: false,
@@ -70,4 +70,4 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
   }, [config]);
 
   return elementRef;
-} 
+}

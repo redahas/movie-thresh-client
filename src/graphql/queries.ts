@@ -5,23 +5,29 @@ export const SEARCH_MOVIES = gql`
     searchMovies(query: $query) {
       title
       released
+      tmdbId
     }
   }
-`
+`;
 
-
-// # id
-// Title
-// Year
-// Rated
-// Released
-// Runtime
-// Genre
-// Director
-// Writer
-// Plot
-// Language
-// Ratings {
-//   Source
-//   Value
-// }
+export const GET_MOVIE_DETAILS = gql`
+  query GetMovieDetails($tmdbId: Int!) {
+    movieDetails(tmdbId: $tmdbId) {
+      title
+      year
+      rated
+      released
+      runtime
+      genre
+      director
+      writer
+      plot
+      poster
+      language
+      ratings {
+        source
+        value
+      }
+    }
+  }
+`;

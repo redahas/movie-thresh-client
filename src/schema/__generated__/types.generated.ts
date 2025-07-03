@@ -31,6 +31,7 @@ export type Movie = {
   genre: Scalars['String']['output'];
   language: Scalars['String']['output'];
   plot: Scalars['String']['output'];
+  poster: Scalars['String']['output'];
   rated: Scalars['String']['output'];
   ratings: Array<MovieRating>;
   released: Scalars['String']['output'];
@@ -42,8 +43,8 @@ export type Movie = {
 
 export type MovieRating = {
   __typename?: 'MovieRating';
-  Source: Scalars['String']['output'];
-  Value: Scalars['String']['output'];
+  source: Scalars['String']['output'];
+  value: Scalars['String']['output'];
 };
 
 export type MovieSearchResult = {
@@ -53,55 +54,20 @@ export type MovieSearchResult = {
   tmdbId: Scalars['Int']['output'];
 };
 
-export type OmdbMovie = {
-  __typename?: 'OmdbMovie';
-  Director: Scalars['String']['output'];
-  Genre: Scalars['String']['output'];
-  Language: Scalars['String']['output'];
-  Plot: Scalars['String']['output'];
-  Rated: Scalars['String']['output'];
-  Ratings: Array<MovieRating>;
-  Released: Scalars['String']['output'];
-  Runtime: Scalars['String']['output'];
-  Title: Scalars['String']['output'];
-  Writer: Scalars['String']['output'];
-  Year: Scalars['String']['output'];
-};
-
 export type Query = {
   __typename?: 'Query';
+  movieDetails: Movie;
   searchMovies: Array<MovieSearchResult>;
+};
+
+
+export type QueryMovieDetailsArgs = {
+  tmdbId: Scalars['Int']['input'];
 };
 
 
 export type QuerySearchMoviesArgs = {
   query: Scalars['String']['input'];
-};
-
-export type TmdbMovie = {
-  __typename?: 'TmdbMovie';
-  adult: Scalars['Boolean']['output'];
-  backdrop_path: Scalars['String']['output'];
-  genre_ids: Array<Scalars['Int']['output']>;
-  id: Scalars['Int']['output'];
-  original_language: Scalars['String']['output'];
-  original_title: Scalars['String']['output'];
-  overview: Scalars['String']['output'];
-  popularity: Scalars['Float']['output'];
-  poster_path: Scalars['String']['output'];
-  release_date: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-  video: Scalars['Boolean']['output'];
-  vote_average: Scalars['Float']['output'];
-  vote_count: Scalars['Int']['output'];
-};
-
-export type TmdbMovieSearchResult = {
-  __typename?: 'TmdbMovieSearchResult';
-  page: Scalars['Int']['output'];
-  results: Array<TmdbMovie>;
-  total_pages: Scalars['Int']['output'];
-  total_results: Scalars['Int']['output'];
 };
 
 export type User = {
@@ -118,7 +84,14 @@ export type SearchMoviesQueryVariables = Exact<{
 }>;
 
 
-export type SearchMoviesQuery = { __typename?: 'Query', searchMovies: Array<{ __typename?: 'MovieSearchResult', title: string, released: string }> };
+export type SearchMoviesQuery = { __typename?: 'Query', searchMovies: Array<{ __typename?: 'MovieSearchResult', title: string, released: string, tmdbId: number }> };
+
+export type GetMovieDetailsQueryVariables = Exact<{
+  tmdbId: Scalars['Int']['input'];
+}>;
+
+
+export type GetMovieDetailsQuery = { __typename?: 'Query', movieDetails: { __typename?: 'Movie', title: string, year: string, rated: string, released: string, runtime: string, genre: string, director: string, writer: string, plot: string, poster: string, language: string, ratings: Array<{ __typename?: 'MovieRating', source: string, value: string }> } };
 
 
 
@@ -127,6 +100,7 @@ export const SearchMoviesDocument = `
   searchMovies(query: $query) {
     title
     released
+    tmdbId
   }
 }
     `;
@@ -153,3 +127,48 @@ useSearchMoviesQuery.getKey = (variables: SearchMoviesQueryVariables) => ['Searc
 
 
 useSearchMoviesQuery.fetcher = (client: GraphQLClient, variables: SearchMoviesQueryVariables, headers?: RequestInit['headers']) => fetcher<SearchMoviesQuery, SearchMoviesQueryVariables>(client, SearchMoviesDocument, variables, headers);
+
+export const GetMovieDetailsDocument = `
+    query GetMovieDetails($tmdbId: Int!) {
+  movieDetails(tmdbId: $tmdbId) {
+    title
+    year
+    rated
+    released
+    runtime
+    genre
+    director
+    writer
+    plot
+    poster
+    language
+    ratings {
+      source
+      value
+    }
+  }
+}
+    `;
+
+export const useGetMovieDetailsQuery = <
+      TData = GetMovieDetailsQuery,
+      TError = unknown
+    >(
+      client: GraphQLClient,
+      variables: GetMovieDetailsQueryVariables,
+      options?: Omit<UseQueryOptions<GetMovieDetailsQuery, TError, TData>, 'queryKey'> & { queryKey?: UseQueryOptions<GetMovieDetailsQuery, TError, TData>['queryKey'] },
+      headers?: RequestInit['headers']
+    ) => {
+    
+    return useQuery<GetMovieDetailsQuery, TError, TData>(
+      {
+    queryKey: ['GetMovieDetails', variables],
+    queryFn: fetcher<GetMovieDetailsQuery, GetMovieDetailsQueryVariables>(client, GetMovieDetailsDocument, variables, headers),
+    ...options
+  }
+    )};
+
+useGetMovieDetailsQuery.getKey = (variables: GetMovieDetailsQueryVariables) => ['GetMovieDetails', variables];
+
+
+useGetMovieDetailsQuery.fetcher = (client: GraphQLClient, variables: GetMovieDetailsQueryVariables, headers?: RequestInit['headers']) => fetcher<GetMovieDetailsQuery, GetMovieDetailsQueryVariables>(client, GetMovieDetailsDocument, variables, headers);

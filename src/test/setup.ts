@@ -10,3 +10,10 @@ Object.defineProperty(import.meta, 'env', {
   },
   writable: true,
 });
+
+// Mock ResizeObserver
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

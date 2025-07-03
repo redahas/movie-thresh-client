@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { SEARCH_MOVIES } from "../graphql/queries";
+import { MovieSearchResult } from "../schema/__generated__/types.generated";
 
 export const searchMoviesFn = createServerFn({ method: "GET" })
   .validator((d: { query: string }) => d)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<MovieSearchResult[]> => {
     const { query } = data;
 
     if (!query || query.trim().length < 2) {
