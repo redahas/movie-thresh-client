@@ -34,15 +34,22 @@ export function useLenis(options: UseLenisOptions = {}) {
       ...options,
     });
 
-    // RAF loop for Lenis
+    // Make Lenis globally accessible for other components
+    (window as any).lenis = lenisRef.current;
+
+    // RAF loop for Lenis - use a more compatible approach
+    let rafId: number;
     function raf(time: number) {
       lenisRef.current?.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     // Cleanup function
     return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
       if (lenisRef.current) {
         lenisRef.current.destroy();
         lenisRef.current = null;

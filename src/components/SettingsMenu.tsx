@@ -1,14 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Settings,
-  Moon,
-  Sun,
-  Monitor,
-  Palette,
-  Volume2,
-  VolumeX,
-  Check,
-} from "lucide-react";
+import { Settings, Moon, Sun, Monitor, Check } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -83,12 +74,11 @@ function RatingSlider({
 
 export function SettingsMenu() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
   const [smoothScrolling, setSmoothScrolling] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const scrollableRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Rating threshold states
   const [imdbThreshold, setImdbThreshold] = useState(6.0);
@@ -115,17 +105,31 @@ export function SettingsMenu() {
   // Prevent body scroll when sheet is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      // Get the current scrollbar width to prevent layout shift
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+
+      // Add padding to compensate for scrollbar width
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+      // Add a class to prevent scrolling
+      document.documentElement.classList.add("no-scroll");
     } else {
-      document.body.style.overflow = "unset";
+      // Remove padding compensation
+      document.body.style.paddingRight = "";
+
+      // Remove the no-scroll class
+      document.documentElement.classList.remove("no-scroll");
     }
 
     return () => {
-      document.body.style.overflow = "unset";
+      // Cleanup on unmount
+      document.body.style.paddingRight = "";
+      document.documentElement.classList.remove("no-scroll");
     };
   }, [isOpen]);
 
-  // Handle wheel events on the scrollable content
+  // Handle wheel events on the scroll area
   const handleWheel = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
@@ -140,7 +144,7 @@ export function SettingsMenu() {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[540px] flex flex-col h-full"
+        className="w-[400px] sm:w-[540px] flex flex-col h-full gap-0"
       >
         <SheetHeader className="flex-shrink-0">
           <SheetTitle>Settings</SheetTitle>
@@ -148,192 +152,151 @@ export function SettingsMenu() {
             Customize your movie browsing experience
           </SheetDescription>
         </SheetHeader>
+        <Separator className="m-0 p-0" />
 
         <div
-          ref={scrollableRef}
+          ref={scrollAreaRef}
+          className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
           onWheel={handleWheel}
-          className="flex flex-col gap-6 p-4 overflow-y-auto flex-1 min-h-0"
         >
-          {/* Rating Thresholds */}
-          <div className="space-y-4">
-            <div className="space-y-0.5">
-              <Label className="text-base font-medium">Rating Thresholds</Label>
-              <p className="text-sm text-muted-foreground">
-                Set minimum ratings for movie recommendations
-              </p>
-            </div>
-
+          <div className="flex flex-col gap-6 p-4">
+            {/* Rating Thresholds */}
             <div className="space-y-4">
-              <RatingSlider
-                label="IMDb Rating"
-                value={imdbThreshold}
-                onChange={setImdbThreshold}
-                min={0}
-                max={10}
-                step={0.1}
-              />
-
-              <RatingSlider
-                label="Rotten Tomatoes"
-                value={rottenTomatoesThreshold}
-                onChange={setRottenTomatoesThreshold}
-                min={0}
-                max={100}
-                step={1}
-                unit="%"
-              />
-
-              <RatingSlider
-                label="Metacritic"
-                value={metacriticThreshold}
-                onChange={setMetacriticThreshold}
-                min={0}
-                max={10}
-                step={0.1}
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Theme Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium">Theme</Label>
-                <p className="text-sm text-muted-foreground">
-                  Choose your preferred color scheme
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={theme === "light" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("light")}
-                className="flex items-center gap-2"
-              >
-                <Sun className="h-4 w-4" />
-                Light
-              </Button>
-              <Button
-                variant={theme === "dark" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("dark")}
-                className="flex items-center gap-2"
-              >
-                <Moon className="h-4 w-4" />
-                Dark
-              </Button>
-              <Button
-                variant={theme === "system" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("system")}
-                className="flex items-center gap-2"
-              >
-                <Monitor className="h-4 w-4" />
-                System
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Smooth Scrolling Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base font-medium">
-                  Smooth Scrolling
+                  Rating Thresholds
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Enable smooth scrolling animations
+                  Set minimum ratings for movie recommendations
                 </p>
               </div>
-              <Toggle
-                checked={smoothScrolling}
-                onCheckedChange={setSmoothScrolling}
-              />
-            </div>
-          </div>
 
-          <Separator />
+              <div className="space-y-4">
+                <RatingSlider
+                  label="IMDb Rating"
+                  value={imdbThreshold}
+                  onChange={setImdbThreshold}
+                  min={0}
+                  max={10}
+                  step={0.1}
+                />
 
-          {/* Animation Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium">Animations</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable smooth transitions and effects
-                </p>
+                <RatingSlider
+                  label="Rotten Tomatoes"
+                  value={rottenTomatoesThreshold}
+                  onChange={setRottenTomatoesThreshold}
+                  min={0}
+                  max={100}
+                  step={1}
+                  unit="%"
+                />
+
+                <RatingSlider
+                  label="Metacritic"
+                  value={metacriticThreshold}
+                  onChange={setMetacriticThreshold}
+                  min={0}
+                  max={10}
+                  step={0.1}
+                />
               </div>
-              <Toggle
-                checked={animationsEnabled}
-                onCheckedChange={setAnimationsEnabled}
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Auto-play Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium">
-                  Auto-play Trailers
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically play movie trailers
-                </p>
-              </div>
-              <Toggle checked={autoPlay} onCheckedChange={setAutoPlay} />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Additional Settings */}
-          <div className="space-y-4">
-            <div className="space-y-0.5">
-              <Label className="text-base font-medium">Display</Label>
-              <p className="text-sm text-muted-foreground">
-                Customize how content is displayed
-              </p>
             </div>
 
-            <div className="grid gap-4">
+            <Separator />
+
+            {/* Theme Settings */}
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="poster-size" className="text-sm">
-                  Poster Size
-                </Label>
-                <select
-                  id="poster-size"
-                  className="rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  defaultValue="medium"
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium</option>
-                  <option value="large">Large</option>
-                </select>
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Theme</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose your preferred color scheme
+                  </p>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="grid-columns" className="text-sm">
-                  Grid Columns
-                </Label>
-                <select
-                  id="grid-columns"
-                  className="rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  defaultValue="4"
+              <div className="flex gap-2">
+                <Button
+                  variant={theme === "light" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("light")}
+                  className="flex items-center gap-2"
                 >
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                </select>
+                  <Sun className="h-4 w-4" />
+                  Light
+                </Button>
+                <Button
+                  variant={theme === "dark" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("dark")}
+                  className="flex items-center gap-2"
+                >
+                  <Moon className="h-4 w-4" />
+                  Dark
+                </Button>
+                <Button
+                  variant={theme === "system" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTheme("system")}
+                  className="flex items-center gap-2"
+                >
+                  <Monitor className="h-4 w-4" />
+                  System
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Smooth Scrolling Settings */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">
+                    Smooth Scrolling
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable smooth scrolling animations
+                  </p>
+                </div>
+                <Toggle
+                  checked={smoothScrolling}
+                  onCheckedChange={setSmoothScrolling}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Animation Settings */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Animations</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable smooth transitions and effects
+                  </p>
+                </div>
+                <Toggle
+                  checked={animationsEnabled}
+                  onCheckedChange={setAnimationsEnabled}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Auto-play Settings */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">
+                    Auto-play Trailers
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically play movie trailers
+                  </p>
+                </div>
+                <Toggle checked={autoPlay} onCheckedChange={setAutoPlay} />
               </div>
             </div>
           </div>

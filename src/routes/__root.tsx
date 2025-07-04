@@ -192,7 +192,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen flex flex-col">
         <StickyHeader />
-        <main className="flex-1 relative">{children}</main>
+        <main className="flex-1 pb-8">{children}</main>
         <Footer />
         <TanStackRouterDevtools position="bottom-right" />
         <Scripts />

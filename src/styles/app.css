@@ -6,6 +6,7 @@
 @layer base {
   html {
     color-scheme: light dark;
+    overflow-x: hidden;
   }
 
   * {
@@ -15,6 +16,15 @@
   html,
   body {
     @apply text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-200;
+  }
+
+  /* Prevent scrolling when settings menu is open */
+  html.no-scroll {
+    overflow: hidden !important;
+  }
+
+  html.no-scroll body {
+    overflow: hidden !important;
   }
 
   .using-mouse * {
@@ -198,13 +208,13 @@
     }
 
     to {
-      transform: translateX(0);
+      transform: translateY(0);
     }
   }
 
   /* Apply transitions to pages */
   .page-transition {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.5s ease-out;
   }
 
   /* Custom view transition styles */
@@ -447,5 +457,37 @@
       transform: translateX(0);
       opacity: 1;
     }
+  }
+}
+
+/* Custom Scrollbar Styles */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  .scrollbar-thumb-border::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
