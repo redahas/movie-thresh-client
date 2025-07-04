@@ -3,6 +3,13 @@ import { queryClient } from "../lib/query-client";
 import { queryKeys } from "../lib/query-client";
 import { graphqlClient } from "../lib/graphql-client";
 import { GET_MOVIE_DETAILS } from "../graphql/queries";
+import { Film } from "lucide-react";
+import {
+  createProgressiveAmazonUrls,
+  isAmazonMediaUrl,
+} from "~/utils/amazon-images";
+import { ColourThiefVanta } from "~/components/ColourThiefVanta";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/movie/$movieId")({
   loader: async ({ params }) => {
@@ -46,8 +53,37 @@ function MovieDetailPage() {
   // Get data from the loader (already fetched and cached)
   const { movie } = Route.useLoaderData();
 
-  console.log("🎬 Movie details page loaded for movieId:", movieId);
-  console.log("🎬 View transition name should be: movie-poster-" + movieId);
+  // Progressive loading state
+  const [currentPosterUrl, setCurrentPosterUrl] = useState<string>("");
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // Set up progressive loading for Amazon images
+  useEffect(() => {
+    if (movie?.posters && movie.posters.length > 0) {
+      const posterUrl = movie.posters[0];
+
+      if (isAmazonMediaUrl(posterUrl)) {
+        // For Amazon images, start with small version
+        const progressive = createProgressiveAmazonUrls(posterUrl, 300, 1000);
+        if (progressive) {
+          setCurrentPosterUrl(progressive.small);
+
+          // Load the large version in the background
+          const largeImg = new Image();
+          largeImg.onload = () => {
+            setCurrentPosterUrl(progressive.large);
+            setIsImageLoaded(true);
+          };
+          largeImg.src = progressive.large;
+        } else {
+          setCurrentPosterUrl(posterUrl);
+        }
+      } else {
+        // For non-Amazon images, use the original URL
+        setCurrentPosterUrl(posterUrl);
+      }
+    }
+  }, [movie?.posters]);
 
   if (isNaN(tmdbId)) {
     return (
@@ -83,149 +119,146 @@ function MovieDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 page-transition">
-      <div className="max-w-6xl mx-auto">
-        <h1
-          className="text-3xl font-bold mb-6 movie-title"
-          style={{ viewTransitionName: `movie-title-${movieId}` }}
-        >
-          {movie.title}
-        </h1>
+    <div className="pb-[4rem]">
+      <div className="absolute inset-0 bg-gray-400" />
+      <ColourThiefVanta imageUrl={currentPosterUrl || movie.posters[0]} />
+      <div className="container max-w-6xl mx-auto px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg mt-[4rem]">
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Movie Poster */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-8">
-                {movie.poster && movie.poster !== "N/A" ? (
+      </div>
+      <div className="container max-w-6xl mx-auto px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg mt-[4rem]">
+        <h1 className="text-3xl font-bold mb-6 movie-title">{movie.title}</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Movie Poster */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-16">
+              {movie.posters && movie.posters.length > 0 ? (
+                <div className="relative">
+                  {/* Loading skeleton */}
+                  <div className="absolute inset-0 bg-gray-200 rounded-lg animate-pulse" />
+
+                  {/* Actual image */}
                   <img
-                    src={movie.poster}
+                    src={currentPosterUrl || movie.posters[0]}
                     alt={`${movie.title} poster`}
-                    className="w-full rounded-lg shadow-lg object-cover movie-poster"
-                    style={{
-                      viewTransitionName: `movie-poster-slide-up-${movieId}`,
-                    }}
+                    className="relative w-full rounded-lg shadow-lg object-cover movie-poster transition-opacity duration-700"
                     loading="lazy"
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
+                    onLoad={(e) => {
+                      // Add a subtle fade-in effect when image loads
                       const target = e.target as HTMLImageElement;
-                      target.src =
-                        "https://via.placeholder.com/300x450/cccccc/666666?text=No+Poster";
+                      target.style.opacity = "1";
+                      setIsImageLoaded(true);
                     }}
+                    onError={(e) => {
+                      // Hide the image if it fails to load - the placeholder component will show instead
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                    }}
+                    style={{ opacity: isImageLoaded ? 1 : 0 }}
                   />
-                ) : (
-                  <div
-                    className="w-full h-[450px] bg-gray-200 rounded-lg flex items-center justify-center movie-poster"
-                    style={{
-                      viewTransitionName: `movie-poster-slide-up-${movieId}`,
-                    }}
-                  >
-                    <div className="text-center text-gray-500">
-                      <div className="text-4xl mb-2">🎬</div>
-                      <div className="text-sm">No Poster Available</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Movie Info */}
-            <div
-              className="lg:col-span-3 space-y-6 movie-details"
-              style={{ viewTransitionName: `movie-details-${movieId}` }}
-            >
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  Details
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
-                  <div>
-                    <p>
-                      <span className="font-medium">Year:</span> {movie.year}
-                    </p>
-                    <p>
-                      <span className="font-medium">Released:</span>{" "}
-                      {movie.released}
-                    </p>
-                    <p>
-                      <span className="font-medium">Runtime:</span>{" "}
-                      {movie.runtime}
-                    </p>
-                    <p>
-                      <span className="font-medium">Genre:</span> {movie.genre}
-                    </p>
-                  </div>
-                  <div>
-                    <p>
-                      <span className="font-medium">Director:</span>{" "}
-                      {movie.director}
-                    </p>
-                    <p>
-                      <span className="font-medium">Writer:</span>{" "}
-                      {movie.writer}
-                    </p>
-                    <p>
-                      <span className="font-medium">Language:</span>{" "}
-                      {movie.language}
-                    </p>
-                    <p>
-                      <span className="font-medium">Rated:</span> {movie.rated}
-                    </p>
-                  </div>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                  Plot
-                </h3>
-                <p className="text-gray-600 leading-relaxed text-lg">
-                  {movie.plot}
-                </p>
-              </div>
-
-              {movie.ratings && movie.ratings.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    Ratings
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {movie.ratings.map(
-                      (
-                        rating: { source: string; value: string },
-                        index: number,
-                      ) => (
-                        <div
-                          key={index}
-                          className="bg-gray-50 rounded-lg p-4 border"
-                        >
-                          <div className="font-semibold text-gray-800 mb-1">
-                            {rating.source}
-                          </div>
-                          <div className="text-lg font-medium text-blue-600">
-                            {rating.value}
-                          </div>
-                        </div>
-                      ),
-                    )}
+              ) : (
+                <div className="w-full aspect-[2/3] bg-gray-700 rounded-lg flex items-center justify-center movie-poster">
+                  <div className="text-center text-gray-400">
+                    <Film className="w-16 h-16 mb-3 opacity-60 mx-auto" />
+                    <div className="text-sm font-medium">
+                      No Poster Available
+                    </div>
                   </div>
                 </div>
               )}
+            </div>
+          </div>
 
-              {/* Quick Info Card */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-800 mb-3">Quick Info</h3>
-                <div className="text-blue-700 space-y-2 text-sm">
+          {/* Movie Info */}
+          <div className="lg:col-span-3 space-y-6 movie-details">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Details
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
+                <div>
                   <p>
-                    <strong>TMDB ID:</strong> {movieId}
+                    <span className="font-medium">Year:</span> {movie.year}
                   </p>
                   <p>
-                    <strong>Title:</strong> {movie.title}
+                    <span className="font-medium">Released:</span>{" "}
+                    {movie.released}
                   </p>
                   <p>
-                    <strong>Year:</strong> {movie.year}
+                    <span className="font-medium">Runtime:</span>{" "}
+                    {movie.runtime}
+                  </p>
+                  <p>
+                    <span className="font-medium">Genre:</span> {movie.genre}
                   </p>
                 </div>
+                <div>
+                  <p>
+                    <span className="font-medium">Director:</span>{" "}
+                    {movie.director}
+                  </p>
+                  <p>
+                    <span className="font-medium">Writer:</span> {movie.writer}
+                  </p>
+                  <p>
+                    <span className="font-medium">Language:</span>{" "}
+                    {movie.language}
+                  </p>
+                  <p>
+                    <span className="font-medium">Rated:</span> {movie.rated}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Plot</h3>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                {movie.plot}
+              </p>
+            </div>
+
+            {movie.ratings && movie.ratings.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  Ratings
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {movie.ratings.map(
+                    (
+                      rating: { source: string; value: string },
+                      index: number,
+                    ) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg p-4 border"
+                      >
+                        <div className="font-semibold text-gray-800 mb-1">
+                          {rating.source}
+                        </div>
+                        <div className="text-lg font-medium text-blue-600">
+                          {rating.value}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Info Card */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800 mb-3">Quick Info</h3>
+              <div className="text-blue-700 space-y-2 text-sm">
+                <p>
+                  <strong>TMDB ID:</strong> {movieId}
+                </p>
+                <p>
+                  <strong>Title:</strong> {movie.title}
+                </p>
+                <p>
+                  <strong>Year:</strong> {movie.year}
+                </p>
               </div>
             </div>
           </div>

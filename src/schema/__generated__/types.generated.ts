@@ -31,7 +31,7 @@ export type Movie = {
   genre: Scalars['String']['output'];
   language: Scalars['String']['output'];
   plot: Scalars['String']['output'];
-  poster: Scalars['String']['output'];
+  posters: Array<Scalars['String']['output']>;
   rated: Scalars['String']['output'];
   ratings: Array<MovieRating>;
   released: Scalars['String']['output'];
@@ -91,7 +91,7 @@ export type GetMovieDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetMovieDetailsQuery = { __typename?: 'Query', movieDetails: { __typename?: 'Movie', title: string, year: string, rated: string, released: string, runtime: string, genre: string, director: string, writer: string, plot: string, poster: string, language: string, ratings: Array<{ __typename?: 'MovieRating', source: string, value: string }> } };
+export type GetMovieDetailsQuery = { __typename?: 'Query', movieDetails: { __typename?: 'Movie', title: string, year: string, rated: string, released: string, runtime: string, genre: string, director: string, writer: string, plot: string, posters: Array<string>, language: string, ratings: Array<{ __typename?: 'MovieRating', source: string, value: string }> } };
 
 
 
@@ -140,7 +140,7 @@ export const GetMovieDetailsDocument = `
     director
     writer
     plot
-    poster
+    posters
     language
     ratings {
       source

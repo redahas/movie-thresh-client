@@ -13,7 +13,7 @@ import {
 import { Input } from "./ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
 import { Skeleton } from "./ui/skeleton";
-import { useRouter } from "@tanstack/react-router";
+import { useRouter, Link } from "@tanstack/react-router";
 import type { Option } from "~/types/base";
 
 type Props<T extends string> = {
@@ -227,26 +227,18 @@ export function AutoComplete<T extends string>({
                       asChild
                     >
                       {onNavigate ? (
-                        <a
-                          href={
+                        <Link
+                          to={
                             getHref
                               ? getHref(option.value, option)
                               : `/movie/${option.value}`
                           }
                           className="flex items-center w-full px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none search-result"
-                          style={{
-                            viewTransitionName: `movie-poster-${option.value}`,
-                          }}
                           onClick={(e) => {
                             console.log(
                               "🎬 Search result clicked:",
                               option.value,
                             );
-                            console.log(
-                              "🎬 View transition name:",
-                              `movie-poster-${option.value}`,
-                            );
-                            e.preventDefault();
                             onNavigate(option.value, option);
                           }}
                           onMouseEnter={() => handleMouseEnter(option.value)}
@@ -261,7 +253,7 @@ export function AutoComplete<T extends string>({
                             )}
                           />
                           {option.label}
-                        </a>
+                        </Link>
                       ) : (
                         <>
                           <Check

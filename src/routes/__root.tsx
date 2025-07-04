@@ -19,6 +19,7 @@ import { seo } from "../utils/seo";
 import { getSupabaseServerClient } from "../utils/supabase";
 import { StickyHeader } from "~/components/StickyHeader";
 import { Footer } from "~/components/Footer";
+import { useLenis } from "~/hooks/useLenis";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -175,6 +176,15 @@ function RootComponent() {
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { user } = Route.useRouteContext();
 
+  // Initialize Lenis for smooth scrolling
+  useLenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    wheelMultiplier: 1,
+    smoothTouch: false,
+  });
+
   return (
     <html>
       <head>
@@ -182,7 +192,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen flex flex-col">
         <StickyHeader />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 relative">{children}</main>
         <Footer />
         <TanStackRouterDevtools position="bottom-right" />
         <Scripts />

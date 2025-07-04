@@ -22,7 +22,7 @@ export const GET_MOVIE_DETAILS = gql`
       director
       writer
       plot
-      poster
+      posters
       language
       ratings {
         source
