@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
+import { useVantaStore } from '../stores/vantaStore';
 
 // Type declaration for Vanta
 declare const VANTA: {
   FOG: (config: any) => {
     destroy: () => void;
+    setOptions: (options: any) => void;
   };
 };
 
@@ -64,9 +66,15 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
   const [isReady, setIsReady] = useState(false);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitializedRef = useRef(false);
+  const prevConfigRef = useRef<Partial<VantaFogConfig>>({});
 
-  // Memoize the config to prevent infinite re-renders
-  const memoizedConfig = useMemo(() => config, [
+  // Get colors from global store
+  const { currentColors } = useVantaStore();
+
+  // Memoize the non-color config to prevent infinite re-renders
+  const memoizedConfig = useMemo(() => ({
+    ...config,
+  }), [
     config.mouseControls,
     config.touchControls,
     config.gyroControls,
@@ -77,10 +85,6 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
     config.speed,
     config.texture,
     config.zoom,
-    config.highlightColor,
-    config.midtoneColor,
-    config.lowlightColor,
-    config.baseColor,
     config.blurFactor,
   ]);
 
@@ -93,6 +97,13 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
     // Wait for VANTA to be available and initialize
     const initVanta = () => {
+      console.log('Checking VANTA availability:', {
+        VANTA: !!((window as any).VANTA),
+        FOG: !!((window as any).VANTA?.FOG),
+        element: !!elementRef.current,
+        initialized: isInitializedRef.current
+      });
+
       if ((window as any).VANTA?.FOG && elementRef.current && !isInitializedRef.current) {
         try {
           console.log('Initializing Vanta effect...');
@@ -106,7 +117,7 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
             }
           }
 
-          vantaRef.current = (window as any).VANTA.FOG({
+          const vantaConfig = {
             el: elementRef.current,
             THREE: THREE, // Pass the imported THREE instance
             mouseControls: true,
@@ -120,12 +131,26 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
             texture: "https://www.vantajs.com/gallery/noise.png",
             zoom: 0.8,
             ...memoizedConfig,
-          });
+            ...currentColors, // Add current colors
+          };
+
+          // Log config without the DOM element to avoid circular reference
+          const { el, ...configWithoutElement } = vantaConfig;
+          console.log('Vanta config:', configWithoutElement);
+
+          try {
+            vantaRef.current = (window as any).VANTA.FOG(vantaConfig);
+            console.log('Vanta instance created:', vantaRef.current);
+          } catch (error) {
+            console.error('Error creating Vanta instance:', error);
+            throw error;
+          }
 
           // Add to global instances for cleanup
           globalVantaInstances.push(vantaRef.current);
 
           isInitializedRef.current = true;
+          prevConfigRef.current = { ...memoizedConfig, ...currentColors };
           console.log('Vanta effect initialized, waiting for smooth animation...');
 
           // Use requestAnimationFrame to wait for the next frame, then add a small delay
@@ -186,5 +211,49 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
     };
   }, [memoizedConfig]);
 
-  return { elementRef, isReady };
+  // Function to update colors dynamically
+  const updateColors = (newColors: {
+    highlightColor?: string;
+    midtoneColor?: string;
+    lowlightColor?: string;
+    baseColor?: string;
+  }) => {
+    if (vantaRef.current && typeof vantaRef.current.setOptions === 'function') {
+      try {
+        vantaRef.current.setOptions(newColors);
+        console.log('Vanta colors updated:', newColors);
+      } catch (error) {
+        console.warn('Error updating Vanta colors:', error);
+      }
+    }
+  };
+
+  // Check for color changes and update if needed
+  useEffect(() => {
+    if (!vantaRef.current || !isInitializedRef.current) return;
+
+    const colorProps = ['highlightColor', 'midtoneColor', 'lowlightColor', 'baseColor'];
+    const hasColorChanges = colorProps.some(prop =>
+      currentColors[prop as keyof typeof currentColors] !== prevConfigRef.current[prop as keyof VantaFogConfig]
+    );
+
+    if (hasColorChanges) {
+      const newColors = {
+        highlightColor: currentColors.highlightColor,
+        midtoneColor: currentColors.midtoneColor,
+        lowlightColor: currentColors.lowlightColor,
+        baseColor: currentColors.baseColor,
+      };
+
+      // Filter out undefined values
+      const filteredColors = Object.fromEntries(
+        Object.entries(newColors).filter(([_, value]) => value !== undefined)
+      );
+
+      updateColors(filteredColors);
+      prevConfigRef.current = { ...memoizedConfig, ...currentColors };
+    }
+  }, [currentColors.highlightColor, currentColors.midtoneColor, currentColors.lowlightColor, currentColors.baseColor, memoizedConfig]);
+
+  return { elementRef, isReady, updateColors };
 }

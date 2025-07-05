@@ -8,8 +8,8 @@ import {
   createProgressiveAmazonUrls,
   isAmazonMediaUrl,
 } from "~/utils/amazon-images";
-import { ColourThiefVanta } from "~/components/ColourThiefVanta";
 import { useState, useEffect } from "react";
+import { updateVantaColorsFromImage } from "~/utils/movieColors";
 
 export const Route = createFileRoute("/movie/$movieId")({
   loader: async ({ params }) => {
@@ -85,6 +85,13 @@ function MovieDetailPage() {
     }
   }, [movie?.posters]);
 
+  // Update Vanta colors when poster URL changes
+  useEffect(() => {
+    if (currentPosterUrl) {
+      updateVantaColorsFromImage(currentPosterUrl);
+    }
+  }, [currentPosterUrl]);
+
   if (isNaN(tmdbId)) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -120,11 +127,6 @@ function MovieDetailPage() {
 
   return (
     <div className="pb-[4rem]">
-      <div className="absolute inset-0 bg-gray-400" />
-      <ColourThiefVanta imageUrl={currentPosterUrl || movie.posters[0]} />
-      <div className="container max-w-6xl mx-auto px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg mt-[4rem]">
-
-      </div>
       <div className="container max-w-6xl mx-auto px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg mt-[4rem]">
         <h1 className="text-3xl font-bold mb-6 movie-title">{movie.title}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

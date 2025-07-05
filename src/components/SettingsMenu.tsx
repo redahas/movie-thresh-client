@@ -1,4 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "~/hooks/useMutation";
+import { useRouter } from "@tanstack/react-router";
 import { Settings, Moon, Sun, Monitor, Check } from "lucide-react";
 import {
   Sheet,
@@ -11,79 +14,161 @@ import {
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import { Slider } from "~/components/ui/slider";
-
-// Simple toggle component
-function Toggle({
-  checked,
-  onCheckedChange,
-}: {
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}) {
-  return (
-    <Button
-      variant={checked ? "default" : "outline"}
-      size="sm"
-      onClick={() => onCheckedChange(!checked)}
-      className="h-8 w-16"
-    >
-      {checked ? <Check className="h-4 w-4" /> : "Off"}
-    </Button>
-  );
-}
-
-// Slider component for rating thresholds
-function RatingSlider({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step = 0.1,
-  unit = "",
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  unit?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">{label}</Label>
-        <span className="text-sm text-muted-foreground">
-          {value}
-          {unit}
-        </span>
-      </div>
-      <Slider
-        value={[value]}
-        onValueChange={(values) => onChange(values[0])}
-        min={min}
-        max={max}
-        step={step}
-        className="w-full"
-      />
-    </div>
-  );
-}
+import { Toggle, RatingSlider } from "~/components/form";
+import { UPDATE_USER_PREFERENCES } from "~/graphql/mutations";
+import { GET_USER } from "~/graphql/queries";
+import { graphqlClient } from "~/lib/graphql-client";
+import { useUser } from "~/hooks/useUser";
+import type { UpdateUserPreferencesInput } from "~/schema/__generated__/types.generated";
+import { toast } from "sonner";
+import { createAuthenticatedClient } from "~/lib/graphql-client";
+import { getSessionTokenFn } from "~/routes/_authed";
+import { useServerFn } from "@tanstack/react-start";
 
 export function SettingsMenu() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
-  const [autoPlay, setAutoPlay] = useState(false);
-  const [smoothScrolling, setSmoothScrolling] = useState(true);
+  const { user } = useUser();
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Initialize settings from user preferences or defaults
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(
+    (user?.preferences?.theme as "light" | "dark" | "system") || "system",
+  );
+
   // Rating threshold states
-  const [imdbThreshold, setImdbThreshold] = useState(6.0);
-  const [rottenTomatoesThreshold, setRottenTomatoesThreshold] = useState(60);
-  const [metacriticThreshold, setMetacriticThreshold] = useState(6.0);
+  const [imdbThreshold, setImdbThreshold] = useState(
+    user?.preferences?.imdbThreshold ?? 6.0,
+  );
+  const [rottenTomatoesThreshold, setRottenTomatoesThreshold] = useState(
+    user?.preferences?.rottenTomatoesThreshold ?? 60,
+  );
+  const [metacriticThreshold, setMetacriticThreshold] = useState(
+    user?.preferences?.metacriticThreshold ?? 6.0,
+  );
+
+  // Debounce timer ref
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mutationRef = useRef<any>(null);
+  const hasInitializedRef = useRef(false);
+
+  // Server function to get session token
+  const getSessionToken = useServerFn(getSessionTokenFn);
+
+  // GraphQL mutation for updating preferences
+  const updatePreferencesMutation = useMutation<
+    UpdateUserPreferencesInput,
+    any
+  >({
+    fn: async (preferences: UpdateUserPreferencesInput) => {
+      console.log("Mutation function called with:", preferences);
+
+      // Get the session token from server
+      const sessionResult = await getSessionToken();
+
+      if (sessionResult.error) {
+        throw new Error(sessionResult.message || "Failed to get session token");
+      }
+
+      console.log("Session token obtained from server");
+
+      console.log("Creating authenticated client...");
+      // Create authenticated client
+      const authenticatedClient = createAuthenticatedClient(
+        sessionResult.token,
+      );
+      console.log("Authenticated client created:", !!authenticatedClient);
+
+      try {
+        console.log("Making GraphQL request...");
+        const result = await authenticatedClient.request(
+          UPDATE_USER_PREFERENCES,
+          {
+            preferences,
+          },
+        );
+        console.log("GraphQL request successful:", result);
+        return result;
+      } catch (error) {
+        console.error("Failed to update preferences:", error);
+        toast.error("Failed to update preferences");
+        throw error;
+      }
+    },
+    onSuccess: ({ data }) => {
+      console.log("Preferences updated successfully:", data);
+      // toast.success("Preferences updated successfully");
+
+      // Invalidate the route to refetch user data with updated preferences
+      router.invalidate();
+    },
+  });
+
+  // Store mutation in ref to avoid dependency issues
+  mutationRef.current = updatePreferencesMutation;
+
+  // Debounced function to update preferences
+  const debouncedUpdatePreferences = useCallback(
+    (preferences: UpdateUserPreferencesInput) => {
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        console.log("Calling mutation with preferences:", preferences);
+        console.log("Mutation ref:", mutationRef.current);
+        if (mutationRef.current?.mutate) {
+          const mutationResolution = mutationRef.current.mutate(preferences);
+          toast.promise(mutationResolution, {
+            loading: "Saving...",
+            success: "Preferences saved",
+            error: "Error saving preferences",
+          });
+        } else {
+          console.error("Mutation ref or mutate function not available");
+        }
+      }, 1000); // 1 second delay
+    },
+    [], // No dependencies
+  );
+
+  // Effect to update preferences when any setting changes
+  useEffect(() => {
+    if (!user) return; // Don't update if user is not authenticated
+
+    // Skip the first render to avoid calling mutation on mount
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
+    }
+
+    const preferences: UpdateUserPreferencesInput = {
+      theme,
+      imdbThreshold,
+      rottenTomatoesThreshold,
+      metacriticThreshold,
+    };
+
+    debouncedUpdatePreferences(preferences);
+  }, [
+    theme,
+    imdbThreshold,
+    rottenTomatoesThreshold,
+    metacriticThreshold,
+    debouncedUpdatePreferences,
+  ]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Check for settings parameter on mount
   useEffect(() => {
@@ -242,61 +327,6 @@ export function SettingsMenu() {
                   <Monitor className="h-4 w-4" />
                   System
                 </Button>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Smooth Scrolling Settings */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">
-                    Smooth Scrolling
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable smooth scrolling animations
-                  </p>
-                </div>
-                <Toggle
-                  checked={smoothScrolling}
-                  onCheckedChange={setSmoothScrolling}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Animation Settings */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Animations</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable smooth transitions and effects
-                  </p>
-                </div>
-                <Toggle
-                  checked={animationsEnabled}
-                  onCheckedChange={setAnimationsEnabled}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Auto-play Settings */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">
-                    Auto-play Trailers
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically play movie trailers
-                  </p>
-                </div>
-                <Toggle checked={autoPlay} onCheckedChange={setAutoPlay} />
               </div>
             </div>
           </div>

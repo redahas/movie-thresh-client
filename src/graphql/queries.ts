@@ -31,3 +31,25 @@ export const GET_MOVIE_DETAILS = gql`
     }
   }
 `;
+
+export const GET_USER = gql`
+  query GetUser {
+    me {
+      id
+      username
+      email
+      createdAt
+      updatedAt
+      preferences {
+        theme
+        soundEnabled
+        animationsEnabled
+        autoPlayEnabled
+        smoothScrollingEnabled
+        imdbThreshold
+        rottenTomatoesThreshold
+        metacriticThreshold
+      }
+    }
+  }
+`;

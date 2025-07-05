@@ -20,6 +20,8 @@ import { getSupabaseServerClient } from "../utils/supabase";
 import { StickyHeader } from "~/components/StickyHeader";
 import { Footer } from "~/components/Footer";
 import { useLenis } from "~/hooks/useLenis";
+import { GlobalVantaBackground } from "~/components/GlobalVantaBackground";
+import { Toaster } from "~/components/ui/sonner";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -191,6 +193,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen flex flex-col">
+        <Toaster />
+        <GlobalVantaBackground />
         <StickyHeader />
         <main className="flex-1 pb-8">{children}</main>
         <Footer />
