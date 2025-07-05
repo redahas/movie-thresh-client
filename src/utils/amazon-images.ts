@@ -1,10 +1,3 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 /**
  * Updates the size parameter in an Amazon media URL
  * @param url - The Amazon media URL (e.g., "https://m.media-amazon.com/images/M/MV5B...@._V1_SX300.jpg")
@@ -45,4 +38,26 @@ export function getAmazonImageSize(url: string): number | null {
 export function isAmazonMediaUrl(url: string): boolean {
   const amazonMediaRegex = /^https:\/\/m\.media-amazon\.com\/images\/M\/.+@\._V1_SX\d+\.(jpg|png|webp)$/i;
   return amazonMediaRegex.test(url);
+}
+
+/**
+ * Creates a progressive loading URL pair for Amazon images
+ * @param url - The Amazon media URL
+ * @param smallSize - Size for the small image (default: 300)
+ * @param largeSize - Size for the large image (default: 1000)
+ * @returns Object with small and large URLs, or null if not an Amazon URL
+ */
+export function createProgressiveAmazonUrls(
+  url: string,
+  smallSize: number = 300,
+  largeSize: number = 1000
+): { small: string; large: string } | null {
+  if (!isAmazonMediaUrl(url)) {
+    return null;
+  }
+
+  return {
+    small: smallSize ? updateAmazonImageSize(url, smallSize) : url,
+    large: largeSize ? updateAmazonImageSize(url, largeSize) : url,
+  };
 }

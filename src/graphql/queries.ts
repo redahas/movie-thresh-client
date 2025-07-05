@@ -5,23 +5,51 @@ export const SEARCH_MOVIES = gql`
     searchMovies(query: $query) {
       title
       released
+      tmdbId
     }
   }
-`
+`;
 
+export const GET_MOVIE_DETAILS = gql`
+  query GetMovieDetails($tmdbId: Int!) {
+    movieDetails(tmdbId: $tmdbId) {
+      title
+      year
+      rated
+      released
+      runtime
+      genre
+      director
+      writer
+      plot
+      posters
+      language
+      ratings {
+        source
+        value
+      }
+    }
+  }
+`;
 
-// # id
-// Title
-// Year
-// Rated
-// Released
-// Runtime
-// Genre
-// Director
-// Writer
-// Plot
-// Language
-// Ratings {
-//   Source
-//   Value
-// }
+export const GET_USER = gql`
+  query GetUser {
+    me {
+      id
+      username
+      email
+      createdAt
+      updatedAt
+      preferences {
+        theme
+        soundEnabled
+        animationsEnabled
+        autoPlayEnabled
+        smoothScrollingEnabled
+        imdbThreshold
+        rottenTomatoesThreshold
+        metacriticThreshold
+      }
+    }
+  }
+`;

@@ -6,6 +6,7 @@
 @layer base {
   html {
     color-scheme: light dark;
+    overflow-x: hidden;
   }
 
   * {
@@ -14,7 +15,17 @@
 
   html,
   body {
-    @apply text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-200;
+    @apply text-gray-900 dark:text-gray-200;
+    background: transparent;
+  }
+
+  /* Prevent scrolling when settings menu is open */
+  html.no-scroll {
+    overflow: hidden !important;
+  }
+
+  html.no-scroll body {
+    overflow: hidden !important;
   }
 
   .using-mouse * {
@@ -133,7 +144,352 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: transparent;
+  }
+}
+
+/* View Transitions */
+@layer utilities {
+
+  /* Enable view transitions */
+  @supports (view-transition-name: none) {
+    :root {
+      view-transition-name: none;
+    }
+  }
+
+  /* Movie poster transition */
+  .movie-poster {
+    view-transition-name: movie-poster;
+  }
+
+  /* Movie title transition */
+  .movie-title {
+    view-transition-name: movie-title;
+  }
+
+  /* Movie details transition */
+  .movie-details {
+    view-transition-name: movie-details;
+  }
+
+  /* Search results transition */
+  .search-result {
+    view-transition-name: search-result;
+  }
+
+  /* Smooth page transitions */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      /* transform: translateY(20px); */
+    }
+
+    to {
+      opacity: 1;
+      /* transform: translateY(0); */
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Apply transitions to pages */
+  .page-transition {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  /* Custom view transition styles */
+  ::view-transition-old(movie-poster),
+  ::view-transition-new(movie-poster) {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+
+  /* Slide-up animation for movie poster */
+  ::view-transition-old(movie-poster-slide-up),
+  ::view-transition-new(movie-poster-slide-up) {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+
+  /* Define the slide-up animation */
+  ::view-transition-old(movie-poster-slide-up) {
+    animation: slide-up-out 0.3s ease-in-out;
+  }
+
+  ::view-transition-new(movie-poster-slide-up) {
+    animation: slide-up-in 0.3s ease-in-out;
+  }
+
+  /* Slide-up keyframes */
+  @keyframes slide-up-out {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    to {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-up-in {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  ::view-transition-old(movie-title),
+  ::view-transition-new(movie-title) {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  ::view-transition-old(movie-details),
+  ::view-transition-new(movie-details) {
+    height: 100%;
+  }
+
+  /* Search result transitions */
+  ::view-transition-old(search-result),
+  ::view-transition-new(search-result) {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Slide-up animation for search results */
+  ::view-transition-old(search-result-slide-up),
+  ::view-transition-new(search-result-slide-up) {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Define the slide-up animation for search results */
+  ::view-transition-old(search-result-slide-up) {
+    animation: search-slide-up-out 0.3s ease-in-out;
+  }
+
+  ::view-transition-new(search-result-slide-up) {
+    animation: search-slide-up-in 0.3s ease-in-out;
+  }
+
+  /* Search slide-up keyframes */
+  @keyframes search-slide-up-out {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    to {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes search-slide-up-in {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Global transition styles */
+  ::view-transition {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in-out;
+  }
+
+  /* Smooth transitions for all view transitions */
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in-out;
+  }
+
+  /* Additional animation examples you can use */
+
+  /* Fade animation */
+  ::view-transition-old(movie-title-fade),
+  ::view-transition-new(movie-title-fade) {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  ::view-transition-old(movie-title-fade) {
+    animation: fade-out 0.3s ease-in-out;
+  }
+
+  ::view-transition-new(movie-title-fade) {
+    animation: fade-in 0.3s ease-in-out;
+  }
+
+  /* Scale animation */
+  ::view-transition-old(movie-poster-scale),
+  ::view-transition-new(movie-poster-scale) {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+
+  ::view-transition-old(movie-poster-scale) {
+    animation: scale-out 0.3s ease-in-out;
+  }
+
+  ::view-transition-new(movie-poster-scale) {
+    animation: scale-in 0.3s ease-in-out;
+  }
+
+  /* Slide-left animation */
+  ::view-transition-old(movie-details-slide-left),
+  ::view-transition-new(movie-details-slide-left) {
+    height: 100%;
+  }
+
+  ::view-transition-old(movie-details-slide-left) {
+    animation: slide-left-out 0.3s ease-in-out;
+  }
+
+  ::view-transition-new(movie-details-slide-left) {
+    animation: slide-left-in 0.3s ease-in-out;
+  }
+
+  /* Keyframes for additional animations */
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-out {
+    from {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    to {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-left-out {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    to {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-left-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Custom Scrollbar Styles */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  .scrollbar-thumb-border::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
   }
 }

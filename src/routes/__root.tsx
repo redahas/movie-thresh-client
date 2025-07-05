@@ -9,6 +9,8 @@ import {
 import * as Sentry from "@sentry/react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
 import { NotFound } from "../components/NotFound";
@@ -17,6 +19,9 @@ import { seo } from "../utils/seo";
 import { getSupabaseServerClient } from "../utils/supabase";
 import { StickyHeader } from "~/components/StickyHeader";
 import { Footer } from "~/components/Footer";
+import { useLenis } from "~/hooks/useLenis";
+import { GlobalVantaBackground } from "~/components/GlobalVantaBackground";
+import { Toaster } from "~/components/ui/sonner";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -81,6 +86,10 @@ export const Route = createRootRoute({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
+      {
+        name: "view-transition",
+        content: "same-origin",
+      },
       ...seo({
         title:
           "TanStack Start | Type-Safe, Client-First, Full-Stack React Framework",
@@ -115,10 +124,7 @@ export const Route = createRootRoute({
         async: true,
       },
       {
-        src: "/js/three.min.js",
-      },
-      {
-        src: "/js/vanta-fog.min.js",
+        src: "https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js",
       },
     ],
   }),
@@ -141,15 +147,45 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const [queryClient] = React.useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes
+            retry: 3,
+            refetchOnWindowFocus: true,
+            refetchOnReconnect: "always",
+          },
+          mutations: {
+            retry: 1,
+          },
+        },
+      }),
+  );
+
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <QueryClientProvider client={queryClient}>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { user } = Route.useRouteContext();
+
+  // Initialize Lenis for smooth scrolling
+  useLenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    wheelMultiplier: 1,
+    smoothTouch: false,
+  });
 
   return (
     <html>
@@ -157,8 +193,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen flex flex-col">
+        <Toaster />
+        <GlobalVantaBackground />
         <StickyHeader />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-8">{children}</main>
         <Footer />
         <TanStackRouterDevtools position="bottom-right" />
         <Scripts />
