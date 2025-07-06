@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "~/hooks/useMutation";
 import { useRouter } from "@tanstack/react-router";
@@ -24,84 +31,160 @@ import { toast } from "sonner";
 import { createAuthenticatedClient } from "~/lib/graphql-client";
 import { getSessionTokenFn } from "~/routes/_authed";
 import { useServerFn } from "@tanstack/react-start";
+import { usePreferences } from "~/contexts/PreferencesContext";
+import { saveLocalSettings } from "~/utils/localStorage";
+import * as Sentry from "@sentry/react";
 
-export function SettingsMenu() {
+export const SettingsMenu = forwardRef<
+  { setIsOpen: (open: boolean) => void },
+  {}
+>((props, ref) => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { preferences, updatePreferences } = usePreferences();
 
-  // Initialize settings from user preferences or defaults
+  // Initialize settings from global preferences
   const [theme, setTheme] = useState<"light" | "dark" | "system">(
-    (user?.preferences?.theme as "light" | "dark" | "system") || "system",
+    preferences.theme,
   );
-
-  // Rating threshold states
-  const [imdbThreshold, setImdbThreshold] = useState(
-    user?.preferences?.imdbThreshold ?? 6.0,
-  );
+  const [imdbThreshold, setImdbThreshold] = useState(preferences.imdbThreshold);
   const [rottenTomatoesThreshold, setRottenTomatoesThreshold] = useState(
-    user?.preferences?.rottenTomatoesThreshold ?? 60,
+    preferences.rottenTomatoesThreshold,
   );
   const [metacriticThreshold, setMetacriticThreshold] = useState(
-    user?.preferences?.metacriticThreshold ?? 6.0,
+    preferences.metacriticThreshold,
   );
+  const [smoothScrollingEnabled, setSmoothScrollingEnabled] = useState(
+    preferences.smoothScrollingEnabled,
+  );
+
+  // Sync local state with global preferences when they change
+  useEffect(() => {
+    setTheme(preferences.theme);
+    setImdbThreshold(preferences.imdbThreshold);
+    setRottenTomatoesThreshold(preferences.rottenTomatoesThreshold);
+    setMetacriticThreshold(preferences.metacriticThreshold);
+    setSmoothScrollingEnabled(preferences.smoothScrollingEnabled);
+
+    // Update previous values to prevent unnecessary mutations
+    previousValuesRef.current = {
+      theme: preferences.theme,
+      imdbThreshold: preferences.imdbThreshold,
+      rottenTomatoesThreshold: preferences.rottenTomatoesThreshold,
+      metacriticThreshold: preferences.metacriticThreshold,
+      smoothScrollingEnabled: preferences.smoothScrollingEnabled,
+    };
+  }, [preferences]);
 
   // Debounce timer ref
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const mutationRef = useRef<any>(null);
   const hasInitializedRef = useRef(false);
+  const previousValuesRef = useRef({
+    theme: preferences.theme,
+    imdbThreshold: preferences.imdbThreshold,
+    rottenTomatoesThreshold: preferences.rottenTomatoesThreshold,
+    metacriticThreshold: preferences.metacriticThreshold,
+    smoothScrollingEnabled: preferences.smoothScrollingEnabled,
+  });
 
   // Server function to get session token
   const getSessionToken = useServerFn(getSessionTokenFn);
 
-  // GraphQL mutation for updating preferences
+  // Function to update preferences (database for authenticated users, localStorage for others)
   const updatePreferencesMutation = useMutation<
     UpdateUserPreferencesInput,
     any
   >({
     fn: async (preferences: UpdateUserPreferencesInput) => {
-      console.log("Mutation function called with:", preferences);
+      if (user) {
+        // Get the session token from server
+        const sessionResult = await getSessionToken();
 
-      // Get the session token from server
-      const sessionResult = await getSessionToken();
-
-      if (sessionResult.error) {
-        throw new Error(sessionResult.message || "Failed to get session token");
-      }
-
-      console.log("Session token obtained from server");
-
-      console.log("Creating authenticated client...");
-      // Create authenticated client
-      const authenticatedClient = createAuthenticatedClient(
-        sessionResult.token,
-      );
-      console.log("Authenticated client created:", !!authenticatedClient);
-
-      try {
-        console.log("Making GraphQL request...");
-        const result = await authenticatedClient.request(
-          UPDATE_USER_PREFERENCES,
-          {
-            preferences,
-          },
+        if (sessionResult.error) {
+          throw new Error(
+            sessionResult.message || "Failed to get session token",
+          );
+        }
+        // Create authenticated client
+        const authenticatedClient = createAuthenticatedClient(
+          sessionResult.token,
         );
-        console.log("GraphQL request successful:", result);
-        return result;
-      } catch (error) {
-        console.error("Failed to update preferences:", error);
-        toast.error("Failed to update preferences");
-        throw error;
+
+        try {
+          const result = await authenticatedClient.request(
+            UPDATE_USER_PREFERENCES,
+            {
+              preferences,
+            },
+          );
+          return result;
+        } catch (error) {
+          console.error("Failed to update preferences:", error);
+
+          // Log error to Sentry
+          Sentry.captureException(error, {
+            tags: {
+              component: "SettingsMenu",
+              operation: "updatePreferences",
+              userType: "authenticated",
+            },
+            extra: {
+              preferences,
+              userId: user?.id,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          });
+
+          toast.error("Failed to update preferences");
+          throw error;
+        }
+      } else {
+        // Unauthenticated user - save to localStorage
+        console.log("User not authenticated, saving to localStorage");
+        try {
+          saveLocalSettings(preferences);
+          return { success: true };
+        } catch (error) {
+          console.error("Failed to save preferences to localStorage:", error);
+
+          // Log error to Sentry
+          Sentry.captureException(error, {
+            tags: {
+              component: "SettingsMenu",
+              operation: "updatePreferences",
+              userType: "unauthenticated",
+              storage: "localStorage",
+            },
+            extra: {
+              preferences,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          });
+
+          throw error;
+        }
       }
     },
     onSuccess: ({ data }) => {
-      console.log("Preferences updated successfully:", data);
-      // toast.success("Preferences updated successfully");
+      // Update global preferences
+      updatePreferences({
+        theme,
+        imdbThreshold,
+        rottenTomatoesThreshold,
+        metacriticThreshold,
+        smoothScrollingEnabled,
+      });
 
-      // Invalidate the route to refetch user data with updated preferences
-      router.invalidate();
+      if (user) {
+        // Invalidate the route to refetch user data with updated preferences
+        router.invalidate();
+      } else {
+        console.log("Preferences saved to localStorage");
+      }
     },
   });
 
@@ -118,8 +201,6 @@ export function SettingsMenu() {
 
       // Set new timer
       debounceTimerRef.current = setTimeout(() => {
-        console.log("Calling mutation with preferences:", preferences);
-        console.log("Mutation ref:", mutationRef.current);
         if (mutationRef.current?.mutate) {
           const mutationResolution = mutationRef.current.mutate(preferences);
           toast.promise(mutationResolution, {
@@ -137,19 +218,42 @@ export function SettingsMenu() {
 
   // Effect to update preferences when any setting changes
   useEffect(() => {
-    if (!user) return; // Don't update if user is not authenticated
-
     // Skip the first render to avoid calling mutation on mount
     if (!hasInitializedRef.current) {
       hasInitializedRef.current = true;
       return;
     }
 
+    // Check if any values have actually changed
+    const currentValues = {
+      theme,
+      imdbThreshold,
+      rottenTomatoesThreshold,
+      metacriticThreshold,
+      smoothScrollingEnabled,
+    };
+
+    const hasChanges = Object.keys(currentValues).some(
+      (key) =>
+        currentValues[key as keyof typeof currentValues] !==
+        previousValuesRef.current[
+          key as keyof typeof previousValuesRef.current
+        ],
+    );
+
+    if (!hasChanges) {
+      return;
+    }
+
+    // Update previous values
+    previousValuesRef.current = currentValues;
+
     const preferences: UpdateUserPreferencesInput = {
       theme,
       imdbThreshold,
       rottenTomatoesThreshold,
       metacriticThreshold,
+      smoothScrollingEnabled,
     };
 
     debouncedUpdatePreferences(preferences);
@@ -158,6 +262,7 @@ export function SettingsMenu() {
     imdbThreshold,
     rottenTomatoesThreshold,
     metacriticThreshold,
+    smoothScrollingEnabled,
     debouncedUpdatePreferences,
   ]);
 
@@ -218,6 +323,11 @@ export function SettingsMenu() {
   const handleWheel = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
+
+  // Expose setIsOpen method to parent component
+  useImperativeHandle(ref, () => ({
+    setIsOpen,
+  }));
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -289,6 +399,26 @@ export function SettingsMenu() {
 
             <Separator />
 
+            {/* Smooth Scrolling */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">
+                    Smooth Scrolling
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable smooth scrolling animations
+                  </p>
+                </div>
+                <Toggle
+                  checked={smoothScrollingEnabled}
+                  onCheckedChange={setSmoothScrollingEnabled}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Theme Settings */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -334,4 +464,4 @@ export function SettingsMenu() {
       </SheetContent>
     </Sheet>
   );
-}
+});

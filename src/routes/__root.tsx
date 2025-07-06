@@ -22,6 +22,11 @@ import { Footer } from "~/components/Footer";
 import { useLenis } from "~/hooks/useLenis";
 import { GlobalVantaBackground } from "~/components/GlobalVantaBackground";
 import { Toaster } from "~/components/ui/sonner";
+import {
+  PreferencesProvider,
+  usePreferences,
+} from "~/contexts/PreferencesContext";
+import { clearLocalSettings } from "~/utils/localStorage";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -136,11 +141,7 @@ export const Route = createRootRoute({
     };
   },
   errorComponent: (props) => {
-    return (
-      <RootDocument>
-        <DefaultCatchBoundary {...props} />
-      </RootDocument>
-    );
+    return <DefaultCatchBoundary {...props} />;
   },
   notFoundComponent: () => <NotFound />,
   component: RootComponent,
@@ -166,17 +167,55 @@ function RootComponent() {
   );
 
   return (
+    <RootDocument queryClient={queryClient}>
+      <Outlet />
+    </RootDocument>
+  );
+}
+
+function RootDocument({
+  children,
+  queryClient,
+}: {
+  children: React.ReactNode;
+  queryClient: QueryClient;
+}) {
+  const { user } = Route.useRouteContext();
+
+  return (
     <QueryClientProvider client={queryClient}>
-      <RootDocument>
-        <Outlet />
-      </RootDocument>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <PreferencesProvider initialUser={user}>
+        <RootDocumentContent>{children}</RootDocumentContent>
+      </PreferencesProvider>
     </QueryClientProvider>
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocumentContent({ children }: { children: React.ReactNode }) {
   const { user } = Route.useRouteContext();
+  const { loadUserPreferences, resetToDefaults } = usePreferences();
+  const prevUserRef = React.useRef(user);
+
+  // Handle user preferences when user changes (login/logout)
+  React.useEffect(() => {
+    const prevUser = prevUserRef.current;
+    const currentUser = user;
+
+    // Only run when user state actually changes
+    if (prevUser !== currentUser) {
+      if (currentUser && !prevUser) {
+        // User just logged in - clear localStorage and load their preferences from database
+        clearLocalSettings();
+        loadUserPreferences(currentUser.preferences || {});
+      } else if (!currentUser && prevUser) {
+        // User just logged out - reset to defaults and clear localStorage
+        resetToDefaults();
+      }
+      // If both are null or both are users, no change needed
+    }
+
+    prevUserRef.current = currentUser;
+  }, [user, loadUserPreferences, resetToDefaults]);
 
   // Initialize Lenis for smooth scrolling
   useLenis({
@@ -199,6 +238,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <main className="flex-1 pb-8">{children}</main>
         <Footer />
         <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools initialIsOpen={false} />
         <Scripts />
       </body>
     </html>

@@ -1,6 +1,6 @@
-import { Settings, LogOut, User } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
-import { Button } from "~/components/ui/button"
+import { Settings, LogOut, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +14,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
-import type { UserProfile } from "~/types/base"
+} from "~/components/ui/dropdown-menu";
+import type { UserProfile } from "~/types/base";
+import { Link } from "@tanstack/react-router";
+import { useState, useRef } from "react";
 
 // {user.avatar_url && (
-//                   <img 
-//                     src={user.avatar_url} 
-//                     alt="Avatar" 
+//                   <img
+//                     src={user.avatar_url}
+//                     alt="Avatar"
 //                     className="w-6 h-6 rounded-full"
 //                   />
 //                 )}
@@ -29,10 +31,21 @@ import type { UserProfile } from "~/types/base"
 //                 </span>
 //                 <Link to="/logout">Logout</Link>
 
-export function AuthMenu({ user }: { user: UserProfile }) {
-  const initials = user?.full_name?.split(' ').reduce((acc: string, curr: string) => acc + curr[0], '') ?? '';
+export function AuthMenu({
+  user,
+  onOpenSettings,
+}: {
+  user: UserProfile;
+  onOpenSettings?: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const initials =
+    user?.full_name
+      ?.split(" ")
+      .reduce((acc: string, curr: string) => acc + curr[0], "") ?? "";
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger>
         <Avatar>
           <AvatarImage src={user?.avatar_url ?? undefined} />
@@ -42,26 +55,34 @@ export function AuthMenu({ user }: { user: UserProfile }) {
       <DropdownMenuContent side="bottom" align="end">
         <DropdownMenuLabel>
           <div className="flex items-center gap-2">
-            <div >
-              <h4 className="text-sm leading-none font-medium">{user?.full_name}</h4>
-              <p className="text-muted-foreground text-sm">
-                {user?.email}
-              </p>
+            <div>
+              <h4 className="text-sm leading-none font-medium">
+                {user?.full_name}
+              </h4>
+              <p className="text-muted-foreground text-sm">{user?.email}</p>
             </div>
           </div>
         </DropdownMenuLabel>
-          <DropdownMenuSeparator />
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className="flex justify-between">
+          <DropdownMenuItem
+            className="flex justify-between"
+            onClick={() => {
+              setIsOpen(false);
+              onOpenSettings?.();
+            }}
+          >
             Settings
             <Settings className="ml-2 h-4 w-4" />
           </DropdownMenuItem>
-          <DropdownMenuItem className="flex justify-between">
-            Logout
-            <LogOut className="ml-2 h-4 w-4" />
+          <DropdownMenuItem className="flex justify-between" asChild>
+            <Link to="/logout">
+              Logout
+              <LogOut className="ml-2 h-4 w-4" />
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
