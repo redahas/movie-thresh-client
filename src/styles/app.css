@@ -11,11 +11,13 @@
 
   * {
     @apply border-gray-200 dark:border-gray-800;
+    @apply border-border outline-ring/50;
   }
 
   html,
   body {
     @apply text-gray-900 dark:text-gray-200;
+    @apply text-foreground;
     background: transparent;
   }
 
@@ -26,6 +28,11 @@
 
   html.no-scroll body {
     overflow: hidden !important;
+  }
+
+  /* Override scroll-locked margin that causes header width issues */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
 
   .using-mouse * {
