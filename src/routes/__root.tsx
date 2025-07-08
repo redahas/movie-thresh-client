@@ -9,6 +9,8 @@ import {
 import * as Sentry from "@sentry/react";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
 import { NotFound } from "../components/NotFound";
@@ -17,6 +19,14 @@ import { seo } from "../utils/seo";
 import { getSupabaseServerClient } from "../utils/supabase";
 import { StickyHeader } from "~/components/StickyHeader";
 import { Footer } from "~/components/Footer";
+import { useLenis } from "~/hooks/useLenis";
+import { GlobalVantaBackground } from "~/components/GlobalVantaBackground";
+import { Toaster } from "~/components/ui/sonner";
+import {
+  PreferencesProvider,
+  usePreferences,
+} from "~/contexts/PreferencesContext";
+import { clearLocalSettings } from "~/utils/localStorage";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -81,6 +91,10 @@ export const Route = createRootRoute({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
+      {
+        name: "view-transition",
+        content: "same-origin",
+      },
       ...seo({
         title:
           "TanStack Start | Type-Safe, Client-First, Full-Stack React Framework",
@@ -115,10 +129,7 @@ export const Route = createRootRoute({
         async: true,
       },
       {
-        src: "/js/three.min.js",
-      },
-      {
-        src: "/js/vanta-fog.min.js",
+        src: "https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js",
       },
     ],
   }),
@@ -130,26 +141,90 @@ export const Route = createRootRoute({
     };
   },
   errorComponent: (props) => {
-    return (
-      <RootDocument>
-        <DefaultCatchBoundary {...props} />
-      </RootDocument>
-    );
+    return <DefaultCatchBoundary {...props} />;
   },
   notFoundComponent: () => <NotFound />,
   component: RootComponent,
 });
 
 function RootComponent() {
+  const [queryClient] = React.useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes
+            retry: 3,
+            refetchOnWindowFocus: true,
+            refetchOnReconnect: "always",
+          },
+          mutations: {
+            retry: 1,
+          },
+        },
+      }),
+  );
+
   return (
-    <RootDocument>
+    <RootDocument queryClient={queryClient}>
       <Outlet />
     </RootDocument>
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({
+  children,
+  queryClient,
+}: {
+  children: React.ReactNode;
+  queryClient: QueryClient;
+}) {
   const { user } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <PreferencesProvider initialUser={user}>
+        <RootDocumentContent>{children}</RootDocumentContent>
+      </PreferencesProvider>
+    </QueryClientProvider>
+  );
+}
+
+function RootDocumentContent({ children }: { children: React.ReactNode }) {
+  const { user } = Route.useRouteContext();
+  const { loadUserPreferences, resetToDefaults } = usePreferences();
+  const prevUserRef = React.useRef(user);
+
+  // Handle user preferences when user changes (login/logout)
+  React.useEffect(() => {
+    const prevUser = prevUserRef.current;
+    const currentUser = user;
+
+    // Only run when user state actually changes
+    if (prevUser !== currentUser) {
+      if (currentUser && !prevUser) {
+        // User just logged in - clear localStorage and load their preferences from database
+        clearLocalSettings();
+        loadUserPreferences(currentUser.preferences || {});
+      } else if (!currentUser && prevUser) {
+        // User just logged out - reset to defaults and clear localStorage
+        resetToDefaults();
+      }
+      // If both are null or both are users, no change needed
+    }
+
+    prevUserRef.current = currentUser;
+  }, [user, loadUserPreferences, resetToDefaults]);
+
+  // Initialize Lenis for smooth scrolling
+  useLenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    wheelMultiplier: 1,
+    smoothTouch: false,
+  });
 
   return (
     <html>
@@ -157,10 +232,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen flex flex-col">
+        <Toaster />
+        <GlobalVantaBackground />
         <StickyHeader />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-8">{children}</main>
         <Footer />
         <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools initialIsOpen={false} />
         <Scripts />
       </body>
     </html>

@@ -7,3 +7,12 @@ export interface UserProfile {
   created_at: string
   updated_at: string
 }
+
+export interface Option<T = string> {
+  value: T;
+  label: string;
+}
+
+// Common variations
+export type StringOption = Option<string>;
+export type NumberOption = Option<number>;

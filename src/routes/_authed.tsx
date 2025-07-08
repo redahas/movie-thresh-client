@@ -48,6 +48,35 @@ export const googleAuthFn = createServerFn({ method: "POST" })
     };
   });
 
+export const getSessionTokenFn = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      return {
+        error: true,
+        message: error.message,
+      };
+    }
+
+    if (!session?.access_token) {
+      return {
+        error: true,
+        message: "No session found",
+      };
+    }
+
+    return {
+      error: false,
+      token: session.access_token,
+    };
+  },
+);
+
 export const Route = createFileRoute("/_authed")({
   beforeLoad: ({ context }) => {
     if (!context.user) {
