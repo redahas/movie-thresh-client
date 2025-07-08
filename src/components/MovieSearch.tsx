@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AutoComplete } from "~/components/AutoComplete";
 import { useRouter } from "@tanstack/react-router";
+import { Route as movieRoute } from "~/routes/movie.$movieId";
 import { Option } from "~/types/base";
 import { SearchIcon } from "lucide-react";
 import { useSearchMovies, usePrefetchMovieDetails } from "~/hooks/useMovies";
@@ -66,7 +67,7 @@ export function MovieSearch() {
           router.navigate({
             to: "/movie/$movieId",
             params: { movieId: value },
-          });
+          } as any);
         });
 
         transition.finished
@@ -78,7 +79,7 @@ export function MovieSearch() {
             router.navigate({
               to: "/movie/$movieId",
               params: { movieId: value },
-            });
+            } as any);
           });
       }, 10);
     } else {
@@ -86,7 +87,7 @@ export function MovieSearch() {
       router.navigate({
         to: "/movie/$movieId",
         params: { movieId: value },
-      });
+      } as any);
     }
   };
 

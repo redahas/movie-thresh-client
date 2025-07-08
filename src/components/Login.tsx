@@ -19,7 +19,7 @@ export function Login() {
     onSuccess: async (ctx) => {
       if (!ctx.data?.error) {
         await router.invalidate();
-        router.navigate({ to: "/" });
+        router.navigate({ to: "." });
         return;
       }
     },
@@ -30,7 +30,7 @@ export function Login() {
     onSuccess: async (ctx) => {
       if (!ctx.data?.error) {
         await router.invalidate();
-        router.navigate({ to: "/" });
+        router.navigate({ to: "." });
         return;
       } else {
         setGoogleError(ctx.data.message || "Authentication failed");

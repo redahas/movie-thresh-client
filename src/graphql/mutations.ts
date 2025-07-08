@@ -14,3 +14,9 @@ export const UPDATE_USER_PREFERENCES = gql`
     }
   }
 `;
+
+export const CLEAR_CACHE = gql`
+  mutation ClearCache {
+    clearCache
+  }
+`;

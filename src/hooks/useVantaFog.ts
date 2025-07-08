@@ -97,16 +97,8 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
     // Wait for VANTA to be available and initialize
     const initVanta = () => {
-      console.log('Checking VANTA availability:', {
-        VANTA: !!((window as any).VANTA),
-        FOG: !!((window as any).VANTA?.FOG),
-        element: !!elementRef.current,
-        initialized: isInitializedRef.current
-      });
-
       if ((window as any).VANTA?.FOG && elementRef.current && !isInitializedRef.current) {
         try {
-          console.log('Initializing Vanta effect...');
 
           // Clean up any existing instance first
           if (vantaRef.current && typeof vantaRef.current.destroy === 'function') {
@@ -136,11 +128,9 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
           // Log config without the DOM element to avoid circular reference
           const { el, ...configWithoutElement } = vantaConfig;
-          console.log('Vanta config:', configWithoutElement);
 
           try {
             vantaRef.current = (window as any).VANTA.FOG(vantaConfig);
-            console.log('Vanta instance created:', vantaRef.current);
           } catch (error) {
             console.error('Error creating Vanta instance:', error);
             throw error;
@@ -151,7 +141,6 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
           isInitializedRef.current = true;
           prevConfigRef.current = { ...memoizedConfig, ...currentColors };
-          console.log('Vanta effect initialized, waiting for smooth animation...');
 
           // Use requestAnimationFrame to wait for the next frame, then add a small delay
           requestAnimationFrame(() => {
@@ -162,7 +151,6 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
             // Add a small delay to allow the effect to initialize smoothly
             initTimeoutRef.current = setTimeout(() => {
-              console.log('Vanta effect ready, showing...');
               setIsReady(true);
             }, 100); // Reduced from 300ms to 200ms
           });
@@ -181,8 +169,6 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
 
     // Cleanup function
     return () => {
-      console.log('Cleaning up Vanta effect...');
-
       // Clear the timeout
       if (initTimeoutRef.current) {
         clearTimeout(initTimeoutRef.current);
@@ -221,7 +207,6 @@ export function useVantaFog(config: Partial<VantaFogConfig> = {}) {
     if (vantaRef.current && typeof vantaRef.current.setOptions === 'function') {
       try {
         vantaRef.current.setOptions(newColors);
-        console.log('Vanta colors updated:', newColors);
       } catch (error) {
         console.warn('Error updating Vanta colors:', error);
       }

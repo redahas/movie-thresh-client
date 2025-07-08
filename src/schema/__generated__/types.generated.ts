@@ -56,6 +56,7 @@ export type MovieSearchResult = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  clearCache: Scalars['Boolean']['output'];
   updateUserPreferences: User;
 };
 
@@ -121,6 +122,11 @@ export type UpdateUserPreferencesMutationVariables = Exact<{
 
 export type UpdateUserPreferencesMutation = { __typename?: 'Mutation', updateUserPreferences: { __typename?: 'User', id: string, updatedAt: string, preferences?: { __typename?: 'UserPreferences', theme?: string | null, imdbThreshold?: number | null, rottenTomatoesThreshold?: number | null, metacriticThreshold?: number | null } | null } };
 
+export type ClearCacheMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ClearCacheMutation = { __typename?: 'Mutation', clearCache: boolean };
+
 export type SearchMoviesQueryVariables = Exact<{
   query: Scalars['String']['input'];
 }>;
@@ -176,6 +182,32 @@ export const useUpdateUserPreferencesMutation = <
 
 
 useUpdateUserPreferencesMutation.fetcher = (client: GraphQLClient, variables: UpdateUserPreferencesMutationVariables, headers?: RequestInit['headers']) => fetcher<UpdateUserPreferencesMutation, UpdateUserPreferencesMutationVariables>(client, UpdateUserPreferencesDocument, variables, headers);
+
+export const ClearCacheDocument = `
+    mutation ClearCache {
+  clearCache
+}
+    `;
+
+export const useClearCacheMutation = <
+      TError = unknown,
+      TContext = unknown
+    >(
+      client: GraphQLClient,
+      options?: UseMutationOptions<ClearCacheMutation, TError, ClearCacheMutationVariables, TContext>,
+      headers?: RequestInit['headers']
+    ) => {
+    
+    return useMutation<ClearCacheMutation, TError, ClearCacheMutationVariables, TContext>(
+      {
+    mutationKey: ['ClearCache'],
+    mutationFn: (variables?: ClearCacheMutationVariables) => fetcher<ClearCacheMutation, ClearCacheMutationVariables>(client, ClearCacheDocument, variables, headers)(),
+    ...options
+  }
+    )};
+
+
+useClearCacheMutation.fetcher = (client: GraphQLClient, variables?: ClearCacheMutationVariables, headers?: RequestInit['headers']) => fetcher<ClearCacheMutation, ClearCacheMutationVariables>(client, ClearCacheDocument, variables, headers);
 
 export const SearchMoviesDocument = `
     query SearchMovies($query: String!) {

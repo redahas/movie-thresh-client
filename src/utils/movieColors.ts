@@ -130,8 +130,6 @@ export async function updateVantaColorsFromImage(imageUrl: string): Promise<void
         // Update the global store
         const { updateColors } = useVantaStore.getState();
         updateColors(palette);
-
-        console.log('Vanta colors updated from image:', palette);
       } catch (error) {
         console.warn('Error extracting colors from image:', error);
       }

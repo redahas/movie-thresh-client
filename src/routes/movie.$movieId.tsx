@@ -10,9 +10,11 @@ import {
 } from "~/utils/amazon-images";
 import { useState, useEffect } from "react";
 import { updateVantaColorsFromImage } from "~/utils/movieColors";
+import { MovieRatingCard } from "~/components/MovieRatingCard";
+import { Movie } from "../schema/__generated__/types.generated";
 
 export const Route = createFileRoute("/movie/$movieId")({
-  loader: async ({ params }) => {
+  loader: async ({ params }): Promise<{ movie: Movie }> => {
     const tmdbId = parseInt(params.movieId, 10);
 
     if (isNaN(tmdbId)) {
@@ -51,7 +53,7 @@ function MovieDetailPage() {
   const tmdbId = parseInt(movieId, 10);
 
   // Get data from the loader (already fetched and cached)
-  const { movie } = Route.useLoaderData();
+  const { movie } = Route.useLoaderData() as { movie: Movie };
 
   // Progressive loading state
   const [currentPosterUrl, setCurrentPosterUrl] = useState<string>("");
@@ -126,9 +128,12 @@ function MovieDetailPage() {
   }
 
   return (
-    <div className="pb-[4rem]">
-      <div className="container max-w-6xl mx-auto px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg mt-[4rem]">
-        <h1 className="text-3xl font-bold mb-6 movie-title">{movie.title}</h1>
+    <div className="container max-w-6xl mx-auto relative py-8 pb-[4rem] flex flex-col gap-8">
+      {/* Movie Rating Card */}
+      <MovieRatingCard title={movie.title} ratings={movie.ratings || []} />
+
+      <div className="px-4 py-8 bg-white rounded-lg shadow-md page-transition animate-in fade-in duration-500 bg-white relative rounded-lg">
+        {/* <h1 className="text-3xl font-bold mb-6 movie-title">{movie.title}</h1> */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Movie Poster */}
           <div className="lg:col-span-1">
