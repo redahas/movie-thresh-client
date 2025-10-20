@@ -85,7 +85,7 @@
     "tiny-invariant": "^1.3.3",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5.7.2",
-    "vite": "^7.0.0",
+    "vite": "^7.0.8",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.0"
   },
